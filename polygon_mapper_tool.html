@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Polygon Mapper Tool</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            gap: 20px;
+            height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .sidebar {
+            width: 350px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            flex-shrink: 0;
+        }
+
+        .workspace {
+            flex-grow: 1;
+            background: #e2e8f0;
+            border-radius: 8px;
+            border: 2px dashed #94a3b8;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: auto;
+            position: relative;
+        }
+
+        h2 { margin-top: 0; font-size: 1.2rem; color: #0f172a; }
+
+        button, input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            border-radius: 6px;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .btn-primary { background: #3b82f6; color: white; }
+        .btn-primary:hover { background: #2563eb; }
+        
+        .btn-success { background: #10b981; color: white; }
+        .btn-success:hover { background: #059669; }
+
+        .btn-danger { background: #ef4444; color: white; }
+        .btn-danger:hover { background: #dc2626; }
+
+        textarea {
+            width: 100%;
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 0.85rem;
+            resize: none;
+            white-space: pre;
+            box-sizing: border-box;
+        }
+
+        /* Container gambar dan SVG */
+        #map-container {
+            position: relative;
+            display: none; /* Disembunyikan sampai gambar diupload */
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        #map-image {
+            display: block;
+            max-width: none; /* Biarkan ukuran asli */
+        }
+
+        #draw-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            cursor: crosshair;
+        }
+
+        /* Elemen yang digambar */
+        .active-line { stroke: #ef4444; stroke-width: 2; stroke-dasharray: 4; fill: none; }
+        .active-point { fill: #ef4444; r: 4; }
+        .finished-polygon { fill: rgba(59, 130, 246, 0.4); stroke: #2563eb; stroke-width: 2; }
+        .finished-polygon:hover { fill: rgba(59, 130, 246, 0.6); }
+
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <h2>🛠 Polygon Mapper</h2>
+        
+        <div>
+            <label style="font-size: 0.85rem; font-weight: bold; color: #64748b; margin-bottom:5px; display:block;">1. Upload Gambar Siteplan</label>
+            <input type="file" id="image-upload" accept="image/*" class="btn-primary" style="background: #f1f5f9; color: #0f172a; border: 1px solid #cbd5e1;">
+        </div>
+
+        <div style="border-top: 1px solid #e2e8f0; margin: 10px 0;"></div>
+
+        <label style="font-size: 0.85rem; font-weight: bold; color: #64748b;">2. Kontrol Gambar</label>
+        <button id="btn-close-polygon" class="btn-success">Simpan Polygon (Enter)</button>
+        <button id="btn-clear-active" class="btn-danger">Batal / Hapus Garis Aktif (Esc)</button>
+        <button id="btn-clear-all" class="btn-danger" style="background: #b91c1c;">Reset Semua</button>
+
+        <div style="border-top: 1px solid #e2e8f0; margin: 10px 0;"></div>
+
+        <label style="font-size: 0.85rem; font-weight: bold; color: #64748b;">3. Hasil Kode Koordinat</label>
+        <p style="font-size: 0.75rem; color: #64748b; margin-top: 0;">Salin kode ini dan simpan ke dalam database atau view template Anda.</p>
+        <textarea id="output-code" readonly placeholder="Kode <polygon> akan muncul di sini..."></textarea>
+    </div>
+
+    <div class="workspace" id="workspace">
+        <span id="placeholder-text" style="color: #94a3b8; font-weight: bold;">Upload gambar untuk mulai menggambar</span>
+        
+        <div id="map-container">
+            <img id="map-image" src="" alt="Siteplan">
+            <svg id="draw-layer"></svg>
+        </div>
+    </div>
+
+    <script>
+        const imageUpload = document.getElementById('image-upload');
+        const mapContainer = document.getElementById('map-container');
+        const mapImage = document.getElementById('map-image');
+        const drawLayer = document.getElementById('draw-layer');
+        const placeholderText = document.getElementById('placeholder-text');
+        const outputCode = document.getElementById('output-code');
+
+        let currentPoints = [];
+        let polygonsData = [];
+        let imageWidth = 0;
+        let imageHeight = 0;
+
+        // 1. Handle Upload Gambar
+        imageUpload.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                mapImage.onload = function() {
+                    imageWidth = mapImage.naturalWidth;
+                    imageHeight = mapImage.naturalHeight;
+                    
+                    // Set SVG viewBox persis dengan resolusi asli gambar
+                    drawLayer.setAttribute('viewBox', `0 0 ${imageWidth} ${imageHeight}`);
+                    
+                    mapContainer.style.display = 'block';
+                    placeholderText.style.display = 'none';
+                    resetAll(); // Bersihkan jika ada sisa gambar sebelumnya
+                }
+                mapImage.src = event.target.result;
+            }
+            reader.readAsDataURL(file);
+        });
+
+        // 2. Fungsi Klik untuk Menggambar Titik
+        drawLayer.addEventListener('click', function(e) {
+            // Hitung koordinat klik relatif terhadap ukuran asli gambar
+            const rect = mapImage.getBoundingClientRect();
+            const scaleX = imageWidth / rect.width;
+            const scaleY = imageHeight / rect.height;
+
+            const x = Math.round((e.clientX - rect.left) * scaleX);
+            const y = Math.round((e.clientY - rect.top) * scaleY);
+
+            currentPoints.push({x, y});
+            renderActiveDrawing();
+        });
+
+        // 3. Render garis dan titik yang sedang aktif digambar
+        function renderActiveDrawing() {
+            // Hapus elemen aktif sebelumnya
+            const activeElements = drawLayer.querySelectorAll('.active-element');
+            activeElements.forEach(el => el.remove());
+
+            if (currentPoints.length === 0) return;
+
+            // Gambar garis penghubung (Polyline)
+            const pointsString = currentPoints.map(p => `${p.x},${p.y}`).join(' ');
+            const polyline = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
+            polyline.setAttribute('points', pointsString);
+            polyline.setAttribute('class', 'active-line active-element');
+            drawLayer.appendChild(polyline);
+
+            // Gambar titik (Circle)
+            currentPoints.forEach(p => {
+                const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                circle.setAttribute('cx', p.x);
+                circle.setAttribute('cy', p.y);
+                circle.setAttribute('class', 'active-point active-element');
+                drawLayer.appendChild(circle);
+            });
+        }
+
+        // 4. Tutup/Simpan Polygon
+        function closePolygon() {
+            if (currentPoints.length < 3) {
+                alert("Minimal butuh 3 titik untuk membuat polygon!");
+                return;
+            }
+
+            const pointsString = currentPoints.map(p => `${p.x},${p.y}`).join(' ');
+            polygonsData.push(pointsString);
+
+            // Render polygon solid
+            const polygon = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+            polygon.setAttribute('points', pointsString);
+            polygon.setAttribute('class', 'finished-polygon');
+            polygon.setAttribute('data-index', polygonsData.length);
+            drawLayer.appendChild(polygon);
+
+            // Reset array titik aktif
+            currentPoints = [];
+            renderActiveDrawing();
+            updateOutput();
+        }
+
+        // 5. Update Textarea Output
+        function updateOutput() {
+            let code = `<!-- viewBox="0 0 ${imageWidth} ${imageHeight}" -->
+`;
+            polygonsData.forEach((points, index) => {
+                code += `<polygon 
+    class="kavling-plot"
+    data-id="Kavling-${index + 1}" 
+    points="${points}">
+</polygon>
+
+`;
+            });
+            outputCode.value = code;
+            outputCode.scrollTop = outputCode.scrollHeight;
+        }
+
+        // 6. Kontrol Tombol
+        document.getElementById('btn-close-polygon').addEventListener('click', closePolygon);
+        
+        document.getElementById('btn-clear-active').addEventListener('click', () => {
+            currentPoints = [];
+            renderActiveDrawing();
+        });
+
+        document.getElementById('btn-clear-all').addEventListener('click', resetAll);
+
+        function resetAll() {
+            currentPoints = [];
+            polygonsData = [];
+            drawLayer.innerHTML = '';
+            outputCode.value = '';
+        }
+
+        // 7. Shortcut Keyboard
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') closePolygon();
+            if (e.key === 'Escape') {
+                currentPoints = [];
+                renderActiveDrawing();
+            }
+        });
+
+    </script>
+</body>
+</html>
