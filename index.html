@@ -1,3246 +1,1232 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="id">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Villa Bukit Tidar — Interactive Siteplan</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
-    <style>
-      @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght=700;900&family=Inter:wght=300;400;500;600;700&display=swap");
-      :root {
-        --forest: #0f2a1f;
-        --moss: #2f6b3e;
-        --sage: #7aa06a;
-        --cream: #fbf9f5;
-        --sand: #ede5cc;
-        --gold: #c9963a;
-        --gold-light: #f5d98a;
-        --terra: #b85c38;
-        --sky: #407ea0;
-        --white: #ffffff;
-        --gray: #6b6b6b;
-        --light: #f7f5f0;
-        --available: #3d9e68;
-        --booked: #d4870e;
-        --sold: #b83030;
-        --panel-bg: rgba(15, 42, 31, 0.96);
-      }
-      * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-      }
-      html,
-      body {
-        height: 100%;
-        font-family: "Inter", sans-serif;
-        background: #e8e0cc;
-        overflow: hidden;
-      }
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Villa Bukit Tidar — Interactive Siteplan</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght=700;900&family=Inter:wght=300;400;500;600;700&display=swap');
+:root{
+  --forest:#0f2a1f;--moss:#2f6b3e;--sage:#7aa06a;--cream:#fbf9f5;--sand:#ede5cc;
+  --gold:#c9963a;--gold-light:#f5d98a;--terra:#b85c38;--sky:#407ea0;
+  --white:#ffffff;--gray:#6b6b6b;--light:#f7f5f0;
+  --available:#3d9e68;--booked:#d4870e;--sold:#b83030;
+  --panel-bg:rgba(15,42,31,0.96);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:'Inter',sans-serif;background:#e8e0cc;overflow:hidden}
 
-      /* NAV */
-      #nav {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        z-index: 200;
-        height: 56px;
-        background: linear-gradient(90deg, #0d2518 0%, #1a4028 100%);
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 0 1.5rem;
-        border-bottom: 2px solid var(--gold);
-      }
-      .nav-brand {
-        font-family: "Playfair Display", serif;
-        color: var(--gold);
-        font-size: 1.05rem;
-        letter-spacing: 0.03em;
-        line-height: 1.1;
-      }
-      .nav-brand small {
-        display: block;
-        font-family: "Inter", sans-serif;
-        font-size: 0.62rem;
-        color: rgba(255, 255, 255, 0.5);
-        letter-spacing: 0.12em;
-        font-weight: 500;
-      }
-      .nav-actions {
-        display: flex;
-        gap: 0.5rem;
-        align-items: center;
-      }
-      .nav-btn {
-        padding: 0.35rem 0.9rem;
-        border-radius: 5px;
-        font-size: 0.78rem;
-        font-weight: 600;
-        cursor: pointer;
-        border: none;
-        font-family: "Inter", sans-serif;
-        transition: all 0.15s;
-      }
-      .nav-btn.ghost {
-        background: transparent;
-        border: 1px solid rgba(255, 255, 255, 0.18);
-        color: rgba(255, 255, 255, 0.8);
-      }
-      .nav-btn.ghost:hover {
-        background: rgba(255, 255, 255, 0.08);
-      }
-      .nav-btn.gold {
-        background: var(--gold);
-        color: var(--forest);
-      }
-      .nav-btn.gold:hover {
-        background: var(--gold-light);
-      }
-      #breadcrumb {
-        display: flex;
-        align-items: center;
-        gap: 0.4rem;
-        font-size: 0.75rem;
-        color: rgba(255, 255, 255, 0.55);
-        margin-left: 1rem;
-      }
-      #breadcrumb .bc-sep {
-        color: rgba(255, 255, 255, 0.3);
-      }
-      #breadcrumb .bc-active {
-        color: var(--gold-light);
-        font-weight: 600;
-      }
-      #breadcrumb .bc-link {
-        cursor: pointer;
-        transition: color 0.15s;
-      }
-      #breadcrumb .bc-link:hover {
-        color: var(--gold-light);
-      }
+/* NAV */
+#nav{position:fixed;top:0;left:0;right:0;z-index:200;height:56px;
+  background:linear-gradient(90deg,#0d2518 0%,#1a4028 100%);
+  display:flex;align-items:center;justify-content:space-between;padding:0 1.5rem;
+  border-bottom:2px solid var(--gold);}
+.nav-brand{font-family:'Playfair Display',serif;color:var(--gold);font-size:1.05rem;letter-spacing:.03em;line-height:1.1}
+.nav-brand small{display:block;font-family:'Inter',sans-serif;font-size:.62rem;color:rgba(255,255,255,.5);letter-spacing:.12em;font-weight:500}
+.nav-actions{display:flex;gap:.5rem;align-items:center}
+.nav-btn{padding:.35rem .9rem;border-radius:5px;font-size:.78rem;font-weight:600;cursor:pointer;border:none;font-family:'Inter',sans-serif;transition:all .15s}
+.nav-btn.ghost{background:transparent;border:1px solid rgba(255,255,255,.18);color:rgba(255,255,255,.8)}
+.nav-btn.ghost:hover{background:rgba(255,255,255,.08)}
+.nav-btn.gold{background:var(--gold);color:var(--forest)}
+.nav-btn.gold:hover{background:var(--gold-light)}
+#breadcrumb{display:flex;align-items:center;gap:.4rem;font-size:.75rem;color:rgba(255,255,255,.55);margin-left:1rem}
+#breadcrumb .bc-sep{color:rgba(255,255,255,.3)}
+#breadcrumb .bc-active{color:var(--gold-light);font-weight:600}
+#breadcrumb .bc-link{cursor:pointer;transition:color .15s}
+#breadcrumb .bc-link:hover{color:var(--gold-light)}
 
-      /* LEGEND BAR */
-      #legendBar {
-        position: fixed;
-        top: 56px;
-        left: 0;
-        right: 0;
-        z-index: 190;
-        height: 36px;
-        background: #0a1e12;
-        display: flex;
-        align-items: center;
-        gap: 1.5rem;
-        padding: 0 1.5rem;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-      }
-      .leg-item {
-        display: flex;
-        align-items: center;
-        gap: 0.4rem;
-        font-size: 0.72rem;
-        color: rgba(255, 255, 255, 0.6);
-        font-weight: 500;
-        letter-spacing: 0.04em;
-      }
-      .leg-dot {
-        width: 10px;
-        height: 10px;
-        border-radius: 2px;
-      }
-      .leg-label {
-        color: rgba(255, 255, 255, 0.35);
-        font-size: 0.7rem;
-        letter-spacing: 0.07em;
-      }
+/* LEGEND BAR */
+#legendBar{position:fixed;top:56px;left:0;right:0;z-index:190;height:36px;background:#0a1e12;
+  display:flex;align-items:center;gap:1.5rem;padding:0 1.5rem;
+  border-bottom:1px solid rgba(255,255,255,.06);}
+.leg-item{display:flex;align-items:center;gap:.4rem;font-size:.72rem;color:rgba(255,255,255,.6);font-weight:500;letter-spacing:.04em}
+.leg-dot{width:10px;height:10px;border-radius:2px}
+.leg-label{color:rgba(255,255,255,.35);font-size:.7rem;letter-spacing:.07em}
 
-      /* ADMIN BAR */
-      #adminBar {
-        position: fixed;
-        top: 92px;
-        left: 0;
-        right: 0;
-        z-index: 185;
-        height: 0;
-        overflow: hidden;
-        transition: height 0.2s;
-        background: #1a1a2e;
-        color: var(--gold);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.72rem;
-        letter-spacing: 0.07em;
-        gap: 1rem;
-      }
-      #adminBar.visible {
-        height: 30px;
-      }
+/* ADMIN BAR */
+#adminBar{position:fixed;top:92px;left:0;right:0;z-index:185;height:0;overflow:hidden;transition:height .2s;
+  background:#1a1a2e;color:var(--gold);display:flex;align-items:center;justify-content:center;
+  font-size:.72rem;letter-spacing:.07em;gap:1rem;}
+#adminBar.visible{height:30px}
 
-      /* CANVAS */
-      #canvas {
-        position: fixed;
-        top: 92px;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        overflow: hidden;
-      }
-      #canvas.with-admin {
-        top: 122px;
-      }
+/* CANVAS */
+#canvas{position:fixed;top:92px;left:0;right:0;bottom:0;overflow:hidden;}
+#canvas.with-admin{top:122px}
 
-      /* MASTER VIEW */
-      #masterView {
-        position: absolute;
-        inset: 0;
-        display: flex;
-        align-items: stretch;
-      }
+/* MASTER VIEW */
+#masterView{position:absolute;inset:0;display:flex;align-items:stretch}
 
-      /* MASTER MAP CONTAINER FOR PHYSICAL IMAGE */
-      #masterMap {
-        flex: 1;
-        overflow: hidden;
-        position: relative;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        background: #ebdcb9;
-      }
-      .master-image-wrap {
-        position: relative;
-        display: inline-block;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-        max-width: 95%;
-        max-height: 80vh;
-      }
-      .master-image-wrap img {
-        display: block;
-        max-width: 100%;
-        height: auto;
-        max-height: 80vh;
-      }
-
-      /* CLUSTER GATES */
-      .cluster-gate-hitbox {
-        position: absolute;
-        box-sizing: border-box;
-        background: rgba(201, 150, 58, 0);
-        border: 2px dashed rgba(201, 150, 58, 0);
-        border-radius: 6px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 5;
-      }
-      .cluster-gate-hitbox:hover {
-        background: rgba(201, 150, 58, 0.15);
-        border-color: var(--gold);
-        box-shadow: 0 0 15px rgba(201, 150, 58, 0.4);
-      }
-
-      .gate-label {
-        background: var(--panel-bg);
-        color: var(--gold-light);
-        font-family: "Inter", sans-serif;
-        font-weight: 700;
-        font-size: 0.7rem;
-        padding: 0.3rem 0.6rem;
-        border-radius: 4px;
-        border: 1px solid var(--gold);
-        pointer-events: none;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-        letter-spacing: 0.05em;
-        transform: translateY(0);
-        transition: transform 0.2s;
-      }
-      .cluster-gate-hitbox:hover .gate-label {
-        transform: translateY(-2px);
-        background: #0f2a1f;
-        color: #ffffff;
-      }
-
-      /* DETAIL PANEL */
-      #detailPanel {
-        width: 0;
-        overflow: hidden;
-        background: var(--panel-bg);
-        transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        display: flex;
-        flex-direction: column;
-        border-left: 1px solid rgba(255, 255, 255, 0.08);
-        position: relative;
-        z-index: 10;
-        flex-shrink: 0;
-      }
-      #detailPanel.open {
-        width: 360px;
-      }
-      #detailPanelInner {
-        width: 360px;
-        height: 100%;
-        overflow-y: auto;
-        padding: 1.25rem 1.25rem 2rem;
-        scrollbar-width: thin;
-        scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
-      }
-
-      /* CLUSTER VIEW */
-      #clusterView {
-        position: absolute;
-        inset: 0;
-        background: #f0ebe0;
-        display: none;
-        flex-direction: column;
-      }
-      #clusterView.show {
-        display: flex;
-      }
-      #clusterHeader {
-        background: linear-gradient(90deg, #0d2518, #1a4028);
-        padding: 0.75rem 1.5rem;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        border-bottom: 2px solid var(--gold);
-        flex-shrink: 0;
-      }
-      #clusterTitle {
-        font-family: "Playfair Display", serif;
-        color: var(--gold);
-        font-size: 1.1rem;
-      }
-      #clusterSubtitle {
-        font-size: 0.72rem;
-        color: rgba(255, 255, 255, 0.5);
-        margin-top: 0.1rem;
-        letter-spacing: 0.06em;
-      }
-      .btn-back {
-        display: flex;
-        align-items: center;
-        gap: 0.4rem;
-        padding: 0.35rem 0.85rem;
-        border-radius: 5px;
-        background: rgba(255, 255, 255, 0.1);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        color: white;
-        font-size: 0.78rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.15s;
-      }
-      .btn-back:hover {
-        background: rgba(255, 255, 255, 0.18);
-      }
-      #clusterBody {
-        flex: 1;
-        display: flex;
-        overflow: hidden;
-        justify-content: center;
-        align-items: center;
-        padding: 1rem;
-      }
-
-      /* CONTAINER MAP KAVLING OVERLAY */
-      #clusterMapWrap {
-        position: relative;
-        display: inline-block;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-        border-radius: 8px;
-        overflow: hidden;
-        max-width: 100%;
-        max-height: 74vh;
-      }
-      #clusterMapWrap img {
-        display: block;
-        max-width: 100%;
-        height: auto;
-        max-height: 74vh;
-      }
-
-      /* INDIVIDUAL INTERACTIVE KAVLING BOXES WITH SEMI-TRANSPARENT STATUS COLORS */
-      .kavling-hitbox {
-        position: absolute;
-        box-sizing: border-box;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-family: "Inter", sans-serif;
-        font-weight: 700;
-        font-size: 0.72rem;
-        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.9);
-        cursor: pointer;
-        transition: all 0.18s ease;
-        border: 1px dashed rgba(255, 255, 255, 0.5);
-        border-radius: 2px;
-      }
-      .kavling-hitbox:hover {
-        transform: scale(1.02);
-        z-index: 10;
-        border: 2px solid var(--white);
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
-        outline: 2px solid var(--gold);
-      }
-
-      /* STATUS OVERLAY COLORS */
-      .kv-status-available {
-        background: rgba(61, 158, 104, 0.55);
-      } /* Green translucent */
-      .kv-status-booked {
-        background: rgba(212, 135, 14, 0.6);
-      } /* Orange translucent */
-      .kv-status-sold {
-        background: rgba(184, 48, 48, 0.6);
-      } /* Red translucent */
-
-      /* STATS STRIP */
-      #statsStrip {
-        display: flex;
-        gap: 0;
-        border-top: 1px solid rgba(255, 255, 255, 0.08);
-        flex-shrink: 0;
-      }
-      .stat-item {
-        flex: 1;
-        padding: 0.5rem;
-        text-align: center;
-        border-right: 1px solid rgba(255, 255, 255, 0.06);
-      }
-      .stat-item:last-child {
-        border-right: none;
-      }
-      .stat-num {
-        font-size: 1rem;
-        font-weight: 700;
-        color: white;
-      }
-      .stat-lbl {
-        font-size: 0.58rem;
-        text-transform: uppercase;
-        letter-spacing: 0.07em;
-        color: rgba(255, 255, 255, 0.4);
-        margin-top: 0.1rem;
-      }
-      .stat-available .stat-num {
-        color: #6dd69a;
-      }
-      .stat-booked .stat-num {
-        color: #f0b44a;
-      }
-      .stat-sold .stat-num {
-        color: #ef8080;
-      }
-
-      /* CLUSTER CARDS */
-      .cluster-info-card {
-        background: rgba(255, 255, 255, 0.06);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 8px;
-        padding: 0.9rem 1rem;
-        margin-bottom: 0.6rem;
-        cursor: pointer;
-        transition: all 0.18s;
-      }
-      .cluster-info-card:hover {
-        background: rgba(255, 255, 255, 0.1);
-        border-color: var(--gold);
-        transform: translateX(3px);
-      }
-      .cic-name {
-        font-size: 0.9rem;
-        font-weight: 700;
-        color: white;
-        margin-bottom: 0.3rem;
-      }
-      .cic-meta {
-        font-size: 0.72rem;
-        color: rgba(255, 255, 255, 0.45);
-        display: flex;
-        gap: 0.75rem;
-      }
-      .cic-bar {
-        height: 4px;
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 2px;
-        margin-top: 0.65rem;
-        overflow: hidden;
-      }
-      .cic-bar-fill {
-        height: 100%;
-        border-radius: 2px;
-        background: var(--gold);
-      }
-
-      /* MODALS */
-      .modal-overlay {
-        position: fixed;
-        inset: 0;
-        z-index: 500;
-        background: rgba(0, 0, 0, 0.75);
-        backdrop-filter: blur(6px);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 1rem;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.22s;
-      }
-      .modal-overlay.open {
-        opacity: 1;
-        pointer-events: all;
-      }
-      .modal {
-        background: #0f2520;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 12px;
-        width: 100%;
-        max-width: 580px;
-        max-height: 90vh;
-        overflow-y: auto;
-        padding: 1.75rem;
-        transform: translateY(16px);
-        transition: transform 0.22s ease;
-        scrollbar-width: thin;
-        scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
-      }
-      .modal-overlay.open .modal {
-        transform: none;
-      }
-      .modal-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        margin-bottom: 1.25rem;
-      }
-      .modal-title {
-        font-family: "Playfair Display", serif;
-        font-size: 1.2rem;
-        color: white;
-      }
-      .modal-sub {
-        font-size: 0.75rem;
-        color: rgba(255, 255, 255, 0.45);
-        margin-top: 0.2rem;
-      }
-      .modal-close {
-        background: none;
-        border: none;
-        cursor: pointer;
-        color: rgba(255, 255, 255, 0.5);
-        font-size: 1.5rem;
-        line-height: 1;
-        padding: 0.1rem;
-      }
-      .modal-close:hover {
-        color: white;
-      }
-
-      /* KAVLING DETAIL POPUP */
-      #kavlingModal .modal {
-        max-width: 620px;
-      }
-      .kv-popup-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 0.5rem;
-        margin-bottom: 0.75rem;
-      }
-      .kv-popup-cell {
-        background: rgba(255, 255, 255, 0.05);
-        border-radius: 6px;
-        padding: 0.6rem 0.75rem;
-        border: 1px solid rgba(255, 255, 255, 0.07);
-      }
-      .kv-popup-label {
-        font-size: 0.6rem;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        color: rgba(255, 255, 255, 0.4);
-        margin-bottom: 0.2rem;
-      }
-      .kv-popup-val {
-        font-size: 0.9rem;
-        font-weight: 600;
-        color: white;
-      }
-      .popup-doc-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 0.75rem;
-        margin-top: 0.5rem;
-      }
-      .popup-doc-box {
-        background: rgba(255, 255, 255, 0.04);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 8px;
-        overflow: hidden;
-      }
-      .popup-doc-title {
-        font-size: 0.65rem;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        color: var(--gold);
-        font-weight: 700;
-        padding: 0.5rem 0.75rem;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-      }
-      .popup-doc-img {
-        width: 100%;
-        height: 160px;
-        object-fit: contain;
-        background: rgba(0, 0, 0, 0.3);
-        display: block;
-      }
-      .popup-doc-empty {
-        height: 160px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        color: rgba(255, 255, 255, 0.25);
-        font-size: 0.78rem;
-        gap: 0.4rem;
-      }
-      .popup-doc-empty span {
-        font-size: 2rem;
-        opacity: 0.4;
-      }
-      .popup-buyer-section {
-        background: rgba(255, 255, 255, 0.04);
-        border-radius: 8px;
-        padding: 0.9rem;
-        border: 1px solid rgba(255, 255, 255, 0.07);
-        margin-bottom: 0.75rem;
-      }
-      .popup-actions {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 0.5rem;
-        margin-top: 0.75rem;
-      }
-      .popup-actions.two-cols {
-        grid-template-columns: 1fr 1fr;
-      }
-
-      /* FORM */
-      .form-section {
-        font-size: 0.6rem;
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
-        color: var(--gold);
-        font-weight: 700;
-        margin: 1.1rem 0 0.6rem;
-        padding-bottom: 0.3rem;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-      }
-      .form-row {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 0.7rem;
-      }
-      .form-group {
-        margin-bottom: 0.7rem;
-      }
-      .form-group label {
-        display: block;
-        font-size: 0.68rem;
-        font-weight: 600;
-        letter-spacing: 0.06em;
-        color: rgba(255, 255, 255, 0.55);
-        margin-bottom: 0.28rem;
-        text-transform: uppercase;
-      }
-      .form-group input,
-      .form-group select,
-      .form-group textarea {
-        width: 100%;
-        padding: 0.5rem 0.75rem;
-        background: rgba(255, 255, 255, 0.06);
-        border: 1px solid rgba(255, 255, 255, 0.12);
-        border-radius: 5px;
-        font-family: "Inter", sans-serif;
-        font-size: 0.82rem;
-        color: white;
-        outline: none;
-        transition: border-color 0.18s;
-      }
-      .form-group input:focus,
-      .form-group select:focus,
-      .form-group textarea:focus {
-        border-color: var(--gold);
-      }
-      .form-group select option {
-        background: #1a3028;
-        color: white;
-      }
-      .form-group textarea {
-        resize: vertical;
-        min-height: 60px;
-      }
-      .form-group input[readonly] {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
-      .btn-submit {
-        width: 100%;
-        padding: 0.7rem;
-        margin-top: 0.5rem;
-        background: var(--moss);
-        color: white;
-        border: none;
-        border-radius: 7px;
-        font-size: 0.88rem;
-        font-weight: 700;
-        cursor: pointer;
-        font-family: "Inter", sans-serif;
-        transition: background 0.15s;
-      }
-      .btn-submit:hover {
-        background: #3a8450;
-      }
-      .login-modal {
-        max-width: 360px;
-      }
-
-      /* UPLOAD ZONE */
-      .upload-zone {
-        border: 1.5px dashed rgba(255, 255, 255, 0.2);
-        border-radius: 6px;
-        padding: 0.6rem;
-        text-align: center;
-        cursor: pointer;
-        transition:
-          border-color 0.18s,
-          background 0.18s;
-        background: rgba(255, 255, 255, 0.03);
-      }
-      .upload-zone:hover {
-        border-color: var(--gold);
-        background: rgba(201, 150, 58, 0.06);
-      }
-      .uz-icon {
-        font-size: 1.3rem;
-        margin-bottom: 0.25rem;
-      }
-      .upload-zone p {
-        font-size: 0.68rem;
-        color: rgba(255, 255, 255, 0.4);
-      }
-      .upload-zone p strong {
-        color: rgba(255, 255, 255, 0.65);
-      }
-      .upload-preview {
-        margin-top: 0.4rem;
-        display: none;
-      }
-      .upload-preview img {
-        width: 100%;
-        max-height: 80px;
-        object-fit: cover;
-        border-radius: 4px;
-        border: 1px solid rgba(255, 255, 255, 0.12);
-      }
-      .up-name {
-        font-size: 0.62rem;
-        color: rgba(255, 255, 255, 0.45);
-        margin-top: 0.2rem;
-        text-overflow: ellipsis;
-        overflow: hidden;
-        white-space: nowrap;
-      }
-      .up-clear {
-        font-size: 0.62rem;
-        color: #ef8080;
-        cursor: pointer;
-      }
-
-      /* TOAST */
-      .toast {
-        position: fixed;
-        bottom: 1.5rem;
-        right: 1.5rem;
-        z-index: 900;
-        background: #0f2520;
-        color: rgba(255, 255, 255, 0.9);
-        padding: 0.7rem 1.1rem;
-        border-radius: 7px;
-        font-size: 0.82rem;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-        transform: translateY(60px);
-        opacity: 0;
-        transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-        max-width: 300px;
-        border-left: 3px solid var(--gold);
-      }
-      .toast.show {
-        transform: none;
-        opacity: 1;
-      }
-      .toast.error {
-        border-left-color: var(--sold);
-      }
-
-      ::-webkit-scrollbar {
-        width: 5px;
-      }
-      ::-webkit-scrollbar-track {
-        background: transparent;
-      }
-      ::-webkit-scrollbar-thumb {
-        background: rgba(255, 255, 255, 0.15);
-        border-radius: 3px;
-      }
-    </style>
-  </head>
-  <body>
-    <nav id="nav">
-      <div style="display: flex; align-items: center">
-        <div class="nav-brand">
-          Villa Bukit Tidar<small>SITEPLAN INTERAKTIF</small>
-        </div>
-        <div id="breadcrumb">
-          <span class="bc-sep">›</span
-          ><span class="bc-active">Master Plan</span>
-        </div>
-      </div>
-      <div class="nav-actions">
-        <span
-          id="navUser"
-          style="
-            font-size: 0.75rem;
-            color: var(--gold);
-            font-weight: 600;
-            display: none;
-          "
-          >⚙ Admin</span
-        >
-        <button class="nav-btn ghost" id="btnLogin" onclick="openLoginModal()">
-          Login Admin
-        </button>
-        <button
-          class="nav-btn ghost"
-          id="btnLogout"
-          onclick="doLogout()"
-          style="display: none"
-        >
-          Keluar
-        </button>
-        <button
-          class="nav-btn gold"
-          id="btnExport"
-          onclick="exportCurrentPdf()"
-          style="display: none"
-        >
-          ⬇ Export Rekap PDF
-        </button>
-      </div>
-    </nav>
-
-    <div id="legendBar">
-      <span class="leg-label">STATUS :</span>
-      <div class="leg-item">
-        <div class="leg-dot" style="background: var(--available)"></div>
-        Tersedia
-      </div>
-      <div class="leg-item">
-        <div class="leg-dot" style="background: var(--booked)"></div>
-        Dipesan
-      </div>
-      <div class="leg-item">
-        <div class="leg-dot" style="background: var(--sold)"></div>
-        Terjual
-      </div>
-    </div>
-
-    <div id="adminBar">
-      ⚙ MODE ADMIN — Klik kavling untuk melihat & edit data
-    </div>
-
-    <div id="canvas">
-      <!-- MASTER PLAN VIEW WITH PHYSICAL SITEPLAN IMAGE -->
-      <div id="masterView">
-        <div id="masterMap">
-          <div class="master-image-wrap">
-            <img src="siteplan_kamu.png" alt="Master Plan Villa Bukit Tidar" />
-
-            <!-- Pintu Masuk Cluster Interaktif -->
-            <div
-              class="cluster-gate-hitbox"
-              onclick="openCluster('A')"
-              style="top: 3%; left: 10%; width: 35%; height: 35%"
-            >
-              <span class="gate-label">📍 Cluster SPACIO</span>
-            </div>
-
-            <div
-              class="cluster-gate-hitbox"
-              onclick="openCluster('B')"
-              style="top: 40%; left: 50%; width: 35%; height: 35%"
-            >
-              <span class="gate-label">📍 Cluster AZALEA</span>
-            </div>
-
-            <div
-              class="cluster-gate-hitbox"
-              onclick="openCluster('C')"
-              style="top: 58%; left: 10%; width: 50%; height: 35%"
-            >
-              <span class="gate-label">📍 Cluster BLOCK E</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- MASTER RIGHT PANEL DETAILED INFO -->
-        <div id="detailPanel">
-          <div id="detailPanelInner">
-            <div style="margin-bottom: 1.25rem">
-              <div
-                style="
-                  font-size: 0.62rem;
-                  text-transform: uppercase;
-                  letter-spacing: 0.1em;
-                  color: var(--gold);
-                  font-weight: 700;
-                  margin-bottom: 0.8rem;
-                "
-              >
-                CLUSTER PROYEK
-              </div>
-              <div class="cluster-info-card" onclick="openCluster('A')">
-                <div class="cic-name">Cluster SPACIO</div>
-                <div class="cic-meta">
-                  <span>10 kavling</span
-                  ><span style="color: #6dd69a">6 tersedia</span>
-                </div>
-                <div class="cic-bar">
-                  <div class="cic-bar-fill" style="width: 60%"></div>
-                </div>
-              </div>
-              <div class="cluster-info-card" onclick="openCluster('B')">
-                <div class="cic-name">Cluster AZALEA</div>
-                <div class="cic-meta">
-                  <span>8 kavling</span
-                  ><span style="color: #6dd69a">4 tersedia</span>
-                </div>
-                <div class="cic-bar">
-                  <div class="cic-bar-fill" style="width: 50%"></div>
-                </div>
-              </div>
-              <div class="cluster-info-card" onclick="openCluster('C')">
-                <div class="cic-name">Cluster BLOCK E</div>
-                <div class="cic-meta">
-                  <span>16 kavling</span
-                  ><span style="color: #6dd69a">9 tersedia</span>
-                </div>
-                <div class="cic-bar">
-                  <div class="cic-bar-fill" style="width: 56%"></div>
-                </div>
-              </div>
-            </div>
-            <div
-              style="
-                border-top: 1px solid rgba(255, 255, 255, 0.08);
-                padding-top: 1rem;
-              "
-            >
-              <div
-                style="
-                  font-size: 0.62rem;
-                  text-transform: uppercase;
-                  letter-spacing: 0.1em;
-                  color: var(--gold);
-                  font-weight: 700;
-                  margin-bottom: 0.75rem;
-                "
-              >
-                TOTAL PROYEK
-              </div>
-              <div
-                style="
-                  display: grid;
-                  grid-template-columns: 1fr 1fr;
-                  gap: 0.5rem;
-                "
-              >
-                <div
-                  style="
-                    background: rgba(61, 158, 104, 0.12);
-                    border: 1px solid rgba(61, 158, 104, 0.25);
-                    border-radius: 7px;
-                    padding: 0.7rem;
-                    text-align: center;
-                  "
-                >
-                  <div
-                    style="font-size: 1.4rem; font-weight: 700; color: #6dd69a"
-                  >
-                    19
-                  </div>
-                  <div
-                    style="
-                      font-size: 0.6rem;
-                      text-transform: uppercase;
-                      letter-spacing: 0.07em;
-                      color: rgba(255, 255, 255, 0.4);
-                      margin-top: 0.1rem;
-                    "
-                  >
-                    Tersedia
-                  </div>
-                </div>
-                <div
-                  style="
-                    background: rgba(212, 135, 14, 0.12);
-                    border: 1px solid rgba(212, 135, 14, 0.25);
-                    border-radius: 7px;
-                    padding: 0.7rem;
-                    text-align: center;
-                  "
-                >
-                  <div
-                    style="font-size: 1.4rem; font-weight: 700; color: #f0b44a"
-                  >
-                    7
-                  </div>
-                  <div
-                    style="
-                      font-size: 0.6rem;
-                      text-transform: uppercase;
-                      letter-spacing: 0.07em;
-                      color: rgba(255, 255, 255, 0.4);
-                      margin-top: 0.1rem;
-                    "
-                  >
-                    Dipesan
-                  </div>
-                </div>
-                <div
-                  style="
-                    background: rgba(184, 48, 48, 0.12);
-                    border: 1px solid rgba(184, 48, 48, 0.25);
-                    border-radius: 7px;
-                    padding: 0.7rem;
-                    text-align: center;
-                  "
-                >
-                  <div
-                    style="font-size: 1.4rem; font-weight: 700; color: #ef8080"
-                  >
-                    8
-                  </div>
-                  <div
-                    style="
-                      font-size: 0.6rem;
-                      text-transform: uppercase;
-                      letter-spacing: 0.07em;
-                      color: rgba(255, 255, 255, 0.4);
-                      margin-top: 0.1rem;
-                    "
-                  >
-                    Terjual
-                  </div>
-                </div>
-                <div
-                  style="
-                    background: rgba(255, 255, 255, 0.05);
-                    border: 1px solid rgba(255, 255, 255, 0.1);
-                    border-radius: 7px;
-                    padding: 0.7rem;
-                    text-align: center;
-                  "
-                >
-                  <div
-                    style="font-size: 1.4rem; font-weight: 700; color: white"
-                  >
-                    34
-                  </div>
-                  <div
-                    style="
-                      font-size: 0.6rem;
-                      text-transform: uppercase;
-                      letter-spacing: 0.07em;
-                      color: rgba(255, 255, 255, 0.4);
-                      margin-top: 0.1rem;
-                    "
-                  >
-                    Total Unit
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- CLUSTER DETAIL ELEMENT VIEW -->
-      <div id="clusterView">
-        <div id="clusterHeader">
-          <div>
-            <div id="clusterTitle">Cluster Detail</div>
-            <div id="clusterSubtitle">
-              Klik kavling untuk memunculkan data detail properti resmi
-            </div>
-          </div>
-          <div style="display: flex; gap: 0.5rem; align-items: center">
-            <button class="btn-back" onclick="goMaster()">← Master Plan</button>
-          </div>
-        </div>
-        <div id="clusterBody">
-          <div id="clusterMapWrap">
-            <!-- Target gambar dinamis (.png) -->
-            <img id="clusterMapImg" src="" alt="Cluster Map Screen" />
-
-            <!-- Wadah overlay kotak warna status kaveling -->
-            <svg
-  id="dynamicKavlingLayer"
-  style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10;"
-  preserveAspectRatio="xMidYMid meet"
-></svg>
-          </div>
-        </div>
-        <div id="statsStrip" style="background: rgba(10, 22, 14, 0.9)"></div>
-      </div>
-    </div>
-
-    <!-- MODALS SYSTEM -->
-    <div
-      class="modal-overlay"
-      id="kavlingModal"
-      onclick="closeOnBdrop(event, 'kavlingModal')"
-    >
-      <div class="modal" style="max-width: 660px">
-        <div class="modal-header">
-          <div>
-            <div class="modal-title" id="kvm-title">Kavling A1</div>
-            <div class="modal-sub" id="kvm-sub">Cluster · Blok A</div>
-          </div>
-          <button class="modal-close" onclick="closeModal('kavlingModal')">
-            ×
-          </button>
-        </div>
-        <div
-          id="kvm-status-badge"
-          class="status-badge sb-available"
-          style="margin-bottom: 1rem"
-        >
-          ● Tersedia
-        </div>
-        <div class="kv-popup-grid" id="kvm-info-grid"></div>
-        <div id="kvm-buyer-section" style="display: none">
-          <div class="form-section">Data Pembeli Resmi</div>
-          <div class="popup-buyer-section" id="kvm-buyer-content"></div>
-        </div>
-        <div id="kvm-doc-section" style="display: none">
-          <div class="form-section">Lampiran Dokumen</div>
-          <div class="popup-doc-grid">
-            <div class="popup-doc-box">
-              <div class="popup-doc-title">🪪 KTP Pembeli</div>
-              <div id="kvm-ktp-wrap"></div>
-            </div>
-            <div class="popup-doc-box">
-              <div class="popup-doc-title">👨‍👩‍👧 Kartu Keluarga</div>
-              <div id="kvm-kk-wrap"></div>
-            </div>
-          </div>
-        </div>
-        <div class="popup-actions" id="kvm-actions"></div>
-      </div>
-    </div>
-
-    <div
-      class="modal-overlay"
-      id="loginModal"
-      onclick="closeOnBdrop(event, 'loginModal')"
-    >
-      <div class="modal login-modal">
-        <div class="modal-header">
-          <div>
-            <div class="modal-title">Login Admin</div>
-            <div class="modal-sub">Masuk untuk mengelola data properti</div>
-          </div>
-          <button class="modal-close" onclick="closeModal('loginModal')">
-            ×
-          </button>
-        </div>
-        <div class="form-group">
-          <label>Username</label
-          ><input type="text" id="loginUser" value="admin" />
-        </div>
-        <div class="form-group">
-          <label>Password</label
-          ><input
-            type="password"
-            id="loginPass"
-            value="admin123"
-            onkeydown="if (event.key === 'Enter') doLogin();"
-          />
-        </div>
-        <button class="btn-submit" onclick="doLogin()">Masuk</button>
-        <p
-          style="
-            font-size: 0.7rem;
-            color: rgba(255, 255, 255, 0.35);
-            text-align: center;
-            margin-top: 0.75rem;
-          "
-        >
-          Demo: admin / admin123
-        </p>
-      </div>
-    </div>
-
-    <div
-      class="modal-overlay"
-      id="adminModal"
-      onclick="closeOnBdrop(event, 'adminModal')"
-    >
-      <div class="modal">
-        <div class="modal-header">
-          <div>
-            <div class="modal-title" id="adminModalTitle">
-              Edit Data Kavling
-            </div>
-            <div class="modal-sub" id="adminModalSub">
-              Formulir Update Database
-            </div>
-          </div>
-          <button class="modal-close" onclick="closeModal('adminModal')">
-            ×
-          </button>
-        </div>
-        <div class="form-section">Data Fisik Properti</div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>No. Kavling</label><input type="text" id="f-id" readonly />
-          </div>
-          <div class="form-group">
-            <label>Status</label>
-            <select id="f-status">
-              <option value="available">Tersedia</option>
-              <option value="booked">Dipesan</option>
-              <option value="sold">Terjual</option>
-            </select>
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Luas (m²)</label><input type="number" id="f-luas" />
-          </div>
-          <div class="form-group">
-            <label>Harga Standar (Rp)</label
-            ><input type="number" id="f-harga" />
-          </div>
-        </div>
-        <div class="form-group">
-          <label>Tipe Bangunan</label>
-          <select id="f-tipe">
-            <option value="">— Pilih Tipe —</option>
-            <option value="36/72">36/72</option>
-            <option value="45/90">45/90</option>
-            <option value="54/120">54/120</option>
-            <option value="72/144">72/144</option>
-            <option value="Kavling Tanah">Kavling Tanah Kosong</option>
-          </select>
-        </div>
-
-        <div class="form-section">Data Identitas Pembeli</div>
-        <div class="form-group">
-          <label>Nama Lengkap Pembeli</label><input type="text" id="f-nama" />
-        </div>
-        <div class="form-group">
-          <label>Alamat Tinggal</label><input type="text" id="f-alamat" />
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>No. KTP / SIM</label><input type="text" id="f-noktp" />
-          </div>
-          <div class="form-group">
-            <label>No. HP Aktif</label><input type="text" id="f-hp" />
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>No. SPR Terbit</label><input type="text" id="f-nospr" />
-          </div>
-          <div class="form-group">
-            <label>Metode Transaksi</label>
-            <select id="f-metode">
-              <option value="">— Pilih —</option>
-              <option value="Cash">Cash / Tunai Keras</option>
-              <option value="KPR">KPR Perbankan</option>
-              <option value="Cash Tempo">Cash Tempo / Bertahap</option>
-            </select>
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Harga Deal Akhir (Rp)</label
-            ><input type="number" id="f-jumlah" />
-          </div>
-          <div class="form-group">
-            <label>Nilai Uang Muka / DP (Rp)</label
-            ><input type="number" id="f-dp" />
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Kelebihan Tanah (Rp)</label
-            ><input type="number" id="f-kelebihan" />
-          </div>
-          <div class="form-group">
-            <label>Discount / Potongan (Rp)</label
-            ><input type="number" id="f-discount" />
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Tanggal Akad / SPR</label
-            ><input type="date" id="f-tanggal" />
-          </div>
-          <div class="form-group">
-            <label>Penambahan Mutu (Rp)</label
-            ><input type="number" id="f-mutu" />
-          </div>
-        </div>
-        <div class="form-group">
-          <label>Catatan Khusus Tambahan</label
-          ><textarea id="f-catatan"></textarea>
-        </div>
-
-        <div class="form-section">Upload Dokumen Legalitas (Gambar)</div>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Foto Dokumen KTP</label>
-            <div
-              class="upload-zone"
-              onclick="document.getElementById('file-ktp').click()"
-            >
-              <input
-                type="file"
-                id="file-ktp"
-                accept="image/*"
-                style="display: none"
-                onchange="handleUpload(event, 'ktp')"
-              />
-              <div class="uz-icon">🪪</div>
-              <p><strong>Klik Area</strong> untuk upload KTP</p>
-              <div class="upload-preview" id="prev-ktp">
-                <img id="img-ktp" src="" alt="KTP" />
-                <div class="up-name" id="name-ktp"></div>
-              </div>
-            </div>
-            <div
-              id="clear-ktp"
-              style="display: none; text-align: right; margin-top: 0.25rem"
-            >
-              <span class="up-clear" onclick="clearUpload('ktp')"
-                >✕ Hapus Berkas</span
-              >
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Foto Kartu Keluarga (KK)</label>
-            <div
-              class="upload-zone"
-              onclick="document.getElementById('file-kk').click()"
-            >
-              <input
-                type="file"
-                id="file-kk"
-                accept="image/*"
-                style="display: none"
-                onchange="handleUpload(event, 'kk')"
-              />
-              <div class="uz-icon">👨‍👩‍👧</div>
-              <p><strong>Klik Area</strong> untuk upload KK</p>
-              <div class="upload-preview" id="prev-kk">
-                <img id="img-kk" src="" alt="KK" />
-                <div class="up-name" id="name-kk"></div>
-              </div>
-            </div>
-            <div
-              id="clear-kk"
-              style="display: none; text-align: right; margin-top: 0.25rem"
-            >
-              <span class="up-clear" onclick="clearUpload('kk')"
-                >✕ Hapus Berkas</span
-              >
-            </div>
-          </div>
-        </div>
-        <button class="btn-submit" onclick="saveKavling()">
-          💾 Simpan & Sinkronisasi Data
-        </button>
-      </div>
-    </div>
-
-    <div class="toast" id="toast"></div>
-
-    <script>
-      // ══════════════════════════════════════════════════════════════════════
-      // DATA SYSTEM & DETAILED PERCENTAGE COORDINATES FOR MAP PNG OVERLAYS
-      // ══════════════════════════════════════════════════════════════════════
-      const CLUSTERS = {
-        A: {
-          name: "Cluster SPACIO",
-          imageFile: "SPACIO.png",
-          color: "#3d9e68",
-          subtitle: "Kavling Hunian Modern Premium",
-          kavling: {
-            // Baris Atas (Contoh koordinat denah gambar SPACIO)
-            A1: {
-  id: "A1",
-  points: "5,205 6,243 59,245 59,183 33,199 4,206", // <-- Menggantikan top, left, w, h
-  blok: "A",
-  luas: 120,
-  harga: 480000000,
-  tipe: "36/72",
-  status: "available",
-  nama: "",
-  alamat: "",
-  noktp: "",
-  hp: "",
-  nospr: "",
-  metode: "",
-  jumlah: 0,
-  dp: 0,
-  kelebihan: 0,
-  discount: 0,
-  mutu: 0,
-  tanggal: "",
-  catatan: "",
-  imgKtp: "",
-  imgKk: "",
-},
-            A2: {
-              id: "A2",
-              top: 22,
-              left: 23,
-              w: 13,
-              h: 24,
-              blok: "A",
-              luas: 120,
-              harga: 490000000,
-              tipe: "45/90",
-              status: "booked",
-              nama: "Budi Santoso",
-              alamat: "Jl. Mawar No.5 Malang",
-              noktp: "3507123456789001",
-              hp: "08123456789",
-              nospr: "SPR-2024-001",
-              metode: "KPR",
-              jumlah: 490000000,
-              dp: 98000000,
-              kelebihan: 0,
-              discount: 5000000,
-              mutu: 0,
-              tanggal: "2024-03-15",
-              catatan: "Proses berkas perbankan",
-              imgKtp: "",
-              imgKk: "",
-            },
-            A3: {
-              id: "A3",
-              top: 22,
-              left: 38,
-              w: 13,
-              h: 24,
-              blok: "A",
-              luas: 120,
-              harga: 495000000,
-              tipe: "45/90",
-              status: "sold",
-              nama: "Dewi Rahayu",
-              alamat: "Jl. Kenanga No.12 Batu",
-              noktp: "3507987654321002",
-              hp: "08234567890",
-              nospr: "SPR-2024-002",
-              metode: "Cash",
-              jumlah: 495000000,
-              dp: 495000000,
-              kelebihan: 0,
-              discount: 0,
-              mutu: 0,
-              tanggal: "2024-01-20",
-              catatan: "Lunas Valid",
-              imgKtp: "",
-              imgKk: "",
-            },
-            A4: {
-              id: "A4",
-              top: 22,
-              left: 53,
-              w: 13,
-              h: 24,
-              blok: "A",
-              luas: 120,
-              harga: 488000000,
-              tipe: "36/72",
-              status: "available",
-              nama: "",
-              alamat: "",
-              noktp: "",
-              hp: "",
-              nospr: "",
-              metode: "",
-              jumlah: 0,
-              dp: 0,
-              kelebihan: 0,
-              discount: 0,
-              mutu: 0,
-              tanggal: "",
-              catatan: "",
-              imgKtp: "",
-              imgKk: "",
-            },
-            A5: {
-              id: "A5",
-              top: 22,
-              left: 68,
-              w: 13,
-              h: 24,
-              blok: "A",
-              luas: 120,
-              harga: 485000000,
-              tipe: "36/72",
-              status: "available",
-              nama: "",
-              alamat: "",
-              noktp: "",
-              hp: "",
-              nospr: "",
-              metode: "",
-              jumlah: 0,
-              dp: 0,
-              kelebihan: 0,
-              discount: 0,
-              mutu: 0,
-              tanggal: "",
-              catatan: "",
-              imgKtp: "",
-              imgKk: "",
-            },
-            // Baris Bawah
-            A6: {
-              id: "A6",
-              top: 54,
-              left: 8,
-              w: 13,
-              h: 24,
-              blok: "A",
-              luas: 130,
-              harga: 520000000,
-              tipe: "45/90",
-              status: "sold",
-              nama: "Hendra Prasetyo",
-              alamat: "Jl. Dahlia No.8 Malang",
-              noktp: "3507456789012003",
-              hp: "08345678901",
-              nospr: "SPR-2023-010",
-              metode: "Cash",
-              jumlah: 520000000,
-              dp: 520000000,
-              kelebihan: 0,
-              discount: 0,
-              mutu: 0,
-              tanggal: "2023-10-05",
-              catatan: "",
-              imgKtp: "",
-              imgKk: "",
-            },
-            A7: {
-              id: "A7",
-              top: 54,
-              left: 23,
-              w: 13,
-              h: 24,
-              blok: "A",
-              luas: 130,
-              harga: 522000000,
-              tipe: "45/90",
-              status: "available",
-              nama: "",
-              alamat: "",
-              noktp: "",
-              hp: "",
-              nospr: "",
-              metode: "",
-              jumlah: 0,
-              dp: 0,
-              kelebihan: 0,
-              discount: 0,
-              mutu: 0,
-              tanggal: "",
-              catatan: "",
-              imgKtp: "",
-              imgKk: "",
-            },
-            A8: {
-              id: "A8",
-              top: 54,
-              left: 38,
-              w: 13,
-              h: 24,
-              blok: "A",
-              luas: 130,
-              harga: 525000000,
-              tipe: "54/120",
-              status: "booked",
-              nama: "Rina Wulandari",
-              alamat: "Jl. Melati No.3 Kepanjen",
-              noktp: "3507111222333004",
-              hp: "08456789012",
-              nospr: "SPR-2024-008",
-              metode: "Cash Tempo",
-              jumlah: 525000000,
-              dp: 80000000,
-              kelebihan: 0,
-              discount: 0,
-              mutu: 0,
-              tanggal: "2024-05-12",
-              catatan: "Titipan Termin 1",
-              imgKtp: "",
-              imgKk: "",
-            },
-            A9: {
-              id: "A9",
-              top: 54,
-              left: 53,
-              w: 13,
-              h: 24,
-              blok: "A",
-              luas: 120,
-              harga: 484000000,
-              tipe: "36/72",
-              status: "available",
-              nama: "",
-              alamat: "",
-              noktp: "",
-              hp: "",
-              nospr: "",
-              metode: "",
-              jumlah: 0,
-              dp: 0,
-              kelebihan: 0,
-              discount: 0,
-              mutu: 0,
-              tanggal: "",
-              catatan: "",
-              imgKtp: "",
-              imgKk: "",
-            },
-            A10: {
-              id: "A10",
-              top: 54,
-              left: 68,
-              w: 13,
-              h: 24,
-              blok: "A",
-              luas: 120,
-              harga: 486000000,
-              tipe: "36/72",
-              status: "available",
-              nama: "",
-              alamat: "",
-              noktp: "",
-              hp: "",
-              nospr: "",
-              metode: "",
-              jumlah: 0,
-              dp: 0,
-              kelebihan: 0,
-              discount: 0,
-              mutu: 0,
-              tanggal: "",
-              catatan: "",
-              imgKtp: "",
-              imgKk: "",
-            },
-          },
-        },
-        B: {
-          name: "Cluster AZALEA",
-          imageFile: "AZALEA.png",
-          color: "#407ea0",
-          subtitle: "Kavling Premium Eksklusif",
-          kavling: {
-            // Baris Atas (Contoh koordinat denah gambar AZALEA)
-            B1: {
-              id: "B1",
-              top: 25,
-              left: 10,
-              w: 16,
-              h: 22,
-              blok: "B",
-              luas: 144,
-              harga: 576000000,
-              tipe: "54/120",
-              status: "available",
-              nama: "",
-              alamat: "",
-              noktp: "",
-              hp: "",
-              nospr: "",
-              metode: "",
-              jumlah: 0,
-              dp: 0,
-              kelebihan: 0,
-              discount: 0,
-              mutu: 0,
-              tanggal: "",
-              catatan: "",
-              imgKtp: "",
-              imgKk: "",
-            },
-            B2: {
-              id: "B2",
-              top: 25,
-              left: 28,
-              w: 16,
-              h: 22,
-              blok: "B",
-              luas: 144,
-              harga: 582000000,
-              tipe: "54/120",
-              status: "sold",
-              nama: "Agus Purnomo",
-              alamat: "Jl. Anggrek No.15 Malang",
-              noktp: "3507222333444005",
-              hp: "08567890123",
-              nospr: "SPR-2024-003",
-              metode: "Cash Tempo",
-              jumlah: 582000000,
-              dp: 582000000,
-              kelebihan: 0,
-              discount: 0,
-              mutu: 0,
-              tanggal: "2024-02-10",
-              catatan: "",
-              imgKtp: "",
-              imgKk: "",
-            },
-            B3: {
-              id: "B3",
-              top: 25,
-              left: 46,
-              w: 16,
-              h: 22,
-              blok: "B",
-              luas: 152,
-              harga: 608000000,
-              tipe: "54/120",
-              status: "booked",
-              nama: "Hendro Wijaya",
-              alamat: "Jl. Flamboyan No.7 Batu",
-              noktp: "3507333444555006",
-              hp: "08678901234",
-              nospr: "SPR-2024-005",
-              metode: "KPR",
-              jumlah: 608000000,
-              dp: 100000000,
-              kelebihan: 0,
-              discount: 8000000,
-              mutu: 0,
-              tanggal: "2024-05-10",
-              catatan: "",
-              imgKtp: "",
-              imgKk: "",
-            },
-            B4: {
-              id: "B4",
-              top: 25,
-              left: 64,
-              w: 16,
-              h: 22,
-              blok: "B",
-              luas: 152,
-              harga: 612000000,
-              tipe: "72/144",
-              status: "available",
-              nama: "",
-              alamat: "",
-              noktp: "",
-              hp: "",
-              nospr: "",
-              metode: "",
-              jumlah: 0,
-              dp: 0,
-              kelebihan: 0,
-              discount: 0,
-              mutu: 0,
-              tanggal: "",
-              catatan: "",
-              imgKtp: "",
-              imgKk: "",
-            },
-            // Baris Bawah
-            B5: {
-              id: "B5",
-              top: 55,
-              left: 10,
-              w: 16,
-              h: 22,
-              blok: "B",
-              luas: 160,
-              harga: 640000000,
-              tipe: "72/144",
-              status: "available",
-              nama: "",
-              alamat: "",
-              noktp: "",
-              hp: "",
-              nospr: "",
-              metode: "",
-              jumlah: 0,
-              dp: 0,
-              kelebihan: 0,
-              discount: 0,
-              mutu: 0,
-              tanggal: "",
-              catatan: "",
-              imgKtp: "",
-              imgKk: "",
-            },
-            B6: {
-              id: "B6",
-              top: 55,
-              left: 28,
-              w: 16,
-              h: 22,
-              blok: "B",
-              luas: 144,
-              harga: 578000000,
-              tipe: "54/120",
-              status: "sold",
-              nama: "Siti Nurhayati",
-              alamat: "Jl. Bougenville No.2 Malang",
-              noktp: "3507444555666007",
-              hp: "08789012345",
-              nospr: "SPR-2023-015",
-              metode: "KPR",
-              jumlah: 578000000,
-              dp: 578000000,
-              kelebihan: 0,
-              discount: 0,
-              mutu: 0,
-              tanggal: "2023-11-05",
-              catatan: "",
-              imgKtp: "",
-              imgKk: "",
-            },
-            B7: {
-              id: "B7",
-              top: 55,
-              left: 46,
-              w: 16,
-              h: 22,
-              blok: "B",
-              luas: 144,
-              harga: 580000000,
-              tipe: "54/120",
-              status: "available",
-              nama: "",
-              alamat: "",
-              noktp: "",
-              hp: "",
-              nospr: "",
-              metode: "",
-              jumlah: 0,
-              dp: 0,
-              kelebihan: 0,
-              discount: 0,
-              mutu: 0,
-              tanggal: "",
-              catatan: "",
-              imgKtp: "",
-              imgKk: "",
-            },
-            B8: {
-              id: "B8",
-              top: 55,
-              left: 64,
-              w: 16,
-              h: 22,
-              blok: "B",
-              luas: 240,
-              harga: 960000000,
-              tipe: "Kavling Tanah",
-              status: "booked",
-              nama: "PT Maju Jaya",
-              alamat: "Jl. Raya Industri No.50 Malang",
-              noktp: "-",
-              hp: "0341-123456",
-              nospr: "SPR-2024-007",
-              metode: "Cash",
-              jumlah: 960000000,
-              dp: 200000000,
-              kelebihan: 0,
-              discount: 50000000,
-              mutu: 0,
-              tanggal: "2024-06-01",
-              catatan: "Nego Luas Aktual",
-              imgKtp: "",
-              imgKk: "",
-            },
-          },
-        },
-        C: {
-          name: "Cluster BLOCK E",
-          imageFile: "BLOCK_E.jpg",
-          color: "#b83030",
-          subtitle: "Kavling Strategis Blok E",
-          kavling: {
-            // Kisi Baris 1 (Contoh koordinat denah gambar BLOCK E)
-            C1: {
-              id: "C1",
-              top: 15,
-              left: 6,
-              w: 10,
-              h: 35,
-              blok: "C",
-              luas: 180,
-              harga: 720000000,
-              tipe: "72/144",
-              status: "available",
-              nama: "",
-              alamat: "",
-              noktp: "",
-              hp: "",
-              nospr: "",
-              metode: "",
-              jumlah: 0,
-              dp: 0,
-              kelebihan: 0,
-              discount: 0,
-              mutu: 0,
-              tanggal: "",
-              catatan: "",
-              imgKtp: "",
-              imgKk: "",
-            },
-            C2: {
-              id: "C2",
-              top: 15,
-              left: 18,
-              w: 10,
-              h: 35,
-              blok: "C",
-              luas: 180,
-              harga: 724000000,
-              tipe: "72/144",
-              status: "sold",
-              nama: "Bambang Eko",
-              alamat: "Jl. Teratai No.11 Malang",
-              noktp: "3507555666777008",
-              hp: "08890123456",
-              nospr: "SPR-2023-030",
-              metode: "KPR",
-              jumlah: 724000000,
-              dp: 724000000,
-              kelebihan: 0,
-              discount: 0,
-              mutu: 0,
-              tanggal: "2023-09-14",
-              catatan: "",
-              imgKtp: "",
-              imgKk: "",
-            },
-            C3: {
-              id: "C3",
-              top: 15,
-              left: 30,
-              w: 10,
-              h: 35,
-              blok: "C",
-              luas: 180,
-              harga: 726000000,
-              tipe: "72/144",
-              status: "available",
-              nama: "",
-              alamat: "",
-              noktp: "",
-              hp: "",
-              nospr: "",
-              metode: "",
-              jumlah: 0,
-              dp: 0,
-              kelebihan: 0,
-              discount: 0,
-              mutu: 0,
-              tanggal: "",
-              catatan: "",
-              imgKtp: "",
-              imgKk: "",
-            },
-            C4: {
-              id: "C4",
-              top: 15,
-              left: 42,
-              w: 10,
-              h: 35,
-              blok: "C",
-              luas: 200,
-              harga: 800000000,
-              tipe: "Kavling Tanah",
-              status: "booked",
-              nama: "Yunita Sari",
-              alamat: "Jl. Pahlawan No.4 Malang",
-              noktp: "3507666777888009",
-              hp: "08901234567",
-              nospr: "SPR-2024-011",
-              metode: "Cash Tempo",
-              jumlah: 800000000,
-              dp: 100000000,
-              kelebihan: 0,
-              discount: 0,
-              mutu: 0,
-              tanggal: "2024-06-15",
-              catatan: "",
-              imgKtp: "",
-              imgKk: "",
-            },
-            C5: {
-              id: "C5",
-              top: 15,
-              left: 54,
-              w: 10,
-              h: 35,
-              blok: "C",
-              luas: 200,
-              harga: 810000000,
-              tipe: "Kavling Tanah",
-              status: "available",
-              nama: "",
-              alamat: "",
-              noktp: "",
-              hp: "",
-              nospr: "",
-              metode: "",
-              jumlah: 0,
-              dp: 0,
-              kelebihan: 0,
-              discount: 0,
-              mutu: 0,
-              tanggal: "",
-              catatan: "",
-              imgKtp: "",
-              imgKk: "",
-            },
-            C6: {
-              id: "C6",
-              top: 15,
-              left: 66,
-              w: 10,
-              h: 35,
-              blok: "C",
-              luas: 200,
-              harga: 812000000,
-              tipe: "Kavling Tanah",
-              status: "sold",
-              nama: "Rini Susanti",
-              alamat: "Jl. Merdeka No.22 Batu",
-              noktp: "3507777888999010",
-              hp: "08112345678",
-              nospr: "SPR-2023-022",
-              metode: "Cash",
-              jumlah: 812000000,
-              dp: 812000000,
-              kelebihan: 0,
-              discount: 0,
-              mutu: 0,
-              tanggal: "2023-12-01",
-              catatan: "",
-              imgKtp: "",
-              imgKk: "",
-            },
-            C7: {
-              id: "C7",
-              top: 15,
-              left: 78,
-              w: 10,
-              h: 35,
-              blok: "C",
-              luas: 180,
-              harga: 722000000,
-              tipe: "72/144",
-              status: "booked",
-              nama: "Sri Wahyuni",
-              alamat: "Jl. Diponegoro No.9 Malang",
-              noktp: "3507888999000011",
-              hp: "08223456789",
-              nospr: "SPR-2024-013",
-              metode: "KPR",
-              jumlah: 722000000,
-              dp: 150000000,
-              kelebihan: 0,
-              discount: 10000000,
-              mutu: 0,
-              tanggal: "2024-04-25",
-              catatan: "",
-              imgKtp: "",
-              imgKk: "",
-            },
-            C8: {
-              id: "C8",
-              top: 15,
-              left: 90,
-              w: 8,
-              h: 35,
-              blok: "C",
-              luas: 180,
-              harga: 720000000,
-              tipe: "72/144",
-              status: "available",
-              nama: "",
-              alamat: "",
-              noktp: "",
-              hp: "",
-              nospr: "",
-              metode: "",
-              jumlah: 0,
-              dp: 0,
-              kelebihan: 0,
-              discount: 0,
-              mutu: 0,
-              tanggal: "",
-              catatan: "",
-              imgKtp: "",
-              imgKk: "",
-            },
-            // Kisi Baris 2
-            C9: {
-              id: "C9",
-              top: 55,
-              left: 6,
-              w: 10,
-              h: 35,
-              blok: "C",
-              luas: 200,
-              harga: 820000000,
-              tipe: "Kavling Tanah",
-              status: "booked",
-              nama: "Anton Hidayat",
-              alamat: "Jl. Sudirman No.18 Malang",
-              noktp: "3507000111222012",
-              hp: "08334567890",
-              nospr: "SPR-2024-014",
-              metode: "Cash",
-              jumlah: 820000000,
-              dp: 200000000,
-              kelebihan: 0,
-              discount: 0,
-              mutu: 0,
-              tanggal: "2024-05-20",
-              catatan: "Waiting list",
-              imgKtp: "",
-              imgKk: "",
-            },
-            C10: {
-              id: "C10",
-              top: 55,
-              left: 18,
-              w: 10,
-              h: 35,
-              blok: "C",
-              luas: 200,
-              harga: 822000000,
-              tipe: "Kavling Tanah",
-              status: "sold",
-              nama: "Hendra Kusuma",
-              alamat: "Jl. Basuki Rahmat No.6 Malang",
-              noktp: "3507112233445013",
-              hp: "08445678901",
-              nospr: "SPR-2023-040",
-              metode: "Cash",
-              jumlah: 822000000,
-              dp: 822000000,
-              kelebihan: 0,
-              discount: 0,
-              mutu: 0,
-              tanggal: "2023-10-10",
-              catatan: "",
-              imgKtp: "",
-              imgKk: "",
-            },
-            C11: {
-              id: "C11",
-              top: 55,
-              left: 30,
-              w: 10,
-              h: 35,
-              blok: "C",
-              luas: 180,
-              harga: 724000000,
-              tipe: "72/144",
-              status: "available",
-              nama: "",
-              alamat: "",
-              noktp: "",
-              hp: "",
-              nospr: "",
-              metode: "",
-              jumlah: 0,
-              dp: 0,
-              kelebihan: 0,
-              discount: 0,
-              mutu: 0,
-              tanggal: "",
-              catatan: "",
-              imgKtp: "",
-              imgKk: "",
-            },
-            C12: {
-              id: "C12",
-              top: 55,
-              left: 42,
-              w: 10,
-              h: 35,
-              blok: "C",
-              luas: 180,
-              harga: 726000000,
-              tipe: "72/144",
-              status: "available",
-              nama: "",
-              alamat: "",
-              noktp: "",
-              hp: "",
-              nospr: "",
-              metode: "",
-              jumlah: 0,
-              dp: 0,
-              kelebihan: 0,
-              discount: 0,
-              mutu: 0,
-              tanggal: "",
-              catatan: "",
-              imgKtp: "",
-              imgKk: "",
-            },
-            C13: {
-              id: "C13",
-              top: 55,
-              left: 54,
-              w: 10,
-              h: 35,
-              blok: "C",
-              luas: 200,
-              harga: 810000000,
-              tipe: "Kavling Tanah",
-              status: "available",
-              nama: "",
-              alamat: "",
-              noktp: "",
-              hp: "",
-              nospr: "",
-              metode: "",
-              jumlah: 0,
-              dp: 0,
-              kelebihan: 0,
-              discount: 0,
-              mutu: 0,
-              tanggal: "",
-              catatan: "",
-              imgKtp: "",
-              imgKk: "",
-            },
-            C14: {
-              id: "C14",
-              top: 55,
-              left: 66,
-              w: 10,
-              h: 35,
-              blok: "C",
-              luas: 200,
-              harga: 812000000,
-              tipe: "Kavling Tanah",
-              status: "available",
-              nama: "",
-              alamat: "",
-              noktp: "",
-              hp: "",
-              nospr: "",
-              metode: "",
-              jumlah: 0,
-              dp: 0,
-              kelebihan: 0,
-              discount: 0,
-              mutu: 0,
-              tanggal: "",
-              catatan: "",
-              imgKtp: "",
-              imgKk: "",
-            },
-            C15: {
-              id: "C15",
-              top: 55,
-              left: 78,
-              w: 10,
-              h: 35,
-              blok: "C",
-              luas: 180,
-              harga: 720000000,
-              tipe: "72/144",
-              status: "sold",
-              nama: "Lia Permata",
-              alamat: "Jl. Ahmad Yani No.14 Batu",
-              noktp: "3507223344556014",
-              hp: "08556789012",
-              nospr: "SPR-2023-041",
-              metode: "Cash Tempo",
-              jumlah: 720000000,
-              dp: 720000000,
-              kelebihan: 0,
-              discount: 0,
-              mutu: 0,
-              tanggal: "2023-11-22",
-              catatan: "",
-              imgKtp: "",
-              imgKk: "",
-            },
-            C16: {
-              id: "C16",
-              top: 55,
-              left: 90,
-              w: 8,
-              h: 35,
-              blok: "C",
-              luas: 180,
-              harga: 722000000,
-              tipe: "72/144",
-              status: "available",
-              nama: "",
-              alamat: "",
-              noktp: "",
-              hp: "",
-              nospr: "",
-              metode: "",
-              jumlah: 0,
-              dp: 0,
-              kelebihan: 0,
-              discount: 0,
-              mutu: 0,
-              tanggal: "",
-              catatan: "",
-              imgKtp: "",
-              imgKk: "",
-            },
-          },
-        },
-      };
-
-      const SL = { available: "Tersedia", booked: "Dipesan", sold: "Terjual" };
-      let isAdmin = false;
-      let currentCluster = null;
-      let currentKavlingId = null;
-
-      // ── UPLOAD SYSTEM ──
-      function handleUpload(event, type) {
-        const file = event.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const b64 = e.target.result;
-          document.getElementById("img-" + type).src = b64;
-          document.getElementById("name-" + type).textContent = file.name;
-          document.getElementById("prev-" + type).style.display = "block";
-          document.getElementById("clear-" + type).style.display = "block";
-          window["_tmp_img_" + type] = b64;
-        };
-        reader.readAsDataURL(file);
-      }
-
-      function clearUpload(type) {
-        document.getElementById("img-" + type).src = "";
-        document.getElementById("name-" + type).textContent = "";
-        document.getElementById("prev-" + type).style.display = "none";
-        document.getElementById("clear-" + type).style.display = "none";
-        document.getElementById("file-" + type).value = "";
-        window["_tmp_img_" + type] = "";
-      }
-
-      // ── RENDER OVERLAY KAVLING (WARNA STATUS PAS MENGIKUTI KOTAK GAMBAR CLUSTER) ──
-      // ── RENDER OVERLAY KAVLING (MENGGUNAKAN SVG POLYGON) ──
-function renderClusterKavlingLayer(key) {
-  const layer = document.getElementById("dynamicKavlingLayer");
-  const img = document.getElementById("clusterMapImg");
-
-  // Harus menunggu gambar peta termuat agar kita tahu resolusi aslinya
-  img.onload = () => {
-    // Kunci resolusi viewBox agar koordinat titik poligon akurat
-    layer.setAttribute("viewBox", `0 0 ${img.naturalWidth} ${img.naturalHeight}`);
-    layer.innerHTML = ""; // Bersihkan layer dari cluster sebelumnya
-
-    const kavlingList = Object.values(CLUSTERS[key].kavling);
-
-    kavlingList.forEach((k) => {
-      // Abaikan jika data kavling masih menggunakan format lama (belum ada 'points')
-      if (!k.points) return;
-
-      // 1. Buat elemen Poligon
-      const polygon = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
-      polygon.setAttribute("points", k.points);
-      polygon.setAttribute("class", `kavling-polygon kv-status-${k.status}`);
-      
-      // Fungsi Klik
-      polygon.onclick = () => kavlingClick(k.id);
-      
-      // Masukkan ke SVG agar dirender oleh browser
-      layer.appendChild(polygon);
-
-      // 2. Buat Teks Label (A1, A2, dst) tepat di tengah Poligon
-      const bbox = polygon.getBBox(); // Menghitung ukuran dan posisi absolut poligon
-      const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-      
-      // Hitung titik tengah (centroid)
-      const centerX = bbox.x + (bbox.width / 2);
-      const centerY = bbox.y + (bbox.height / 2);
-      
-      text.setAttribute("x", centerX);
-      text.setAttribute("y", centerY);
-      text.setAttribute("class", "kavling-text");
-      text.textContent = k.id;
-      
-      layer.appendChild(text);
-    });
-  };
-
-  // Jika gambar diambil dari cache browser dan onload tidak terpicu otomatis
-  if (img.complete) {
-    img.onload();
-  }
+/* MASTER MAP CONTAINER FOR PHYSICAL IMAGE */
+#masterMap{
+  flex:1;
+  overflow:hidden;
+  position:relative;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background:#ebdcb9;
+}
+.master-image-wrap {
+  position: relative;
+  display: inline-block;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+  max-width: 95%;
+  max-height: 80vh;
+}
+.master-image-wrap img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  max-height: 80vh;
 }
 
-      // ── NAVIGATION CONTROLLER ──
-      function openCluster(key) {
-        currentCluster = key;
-        currentKavlingId = null;
-        const cl = CLUSTERS[key];
+/* CLUSTER GATES */
+.cluster-gate-hitbox {
+  position: absolute;
+  box-sizing: border-box;
+  background: rgba(201, 150, 58, 0);
+  border: 2px dashed rgba(201, 150, 58, 0);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+}
+.cluster-gate-hitbox:hover {
+  background: rgba(201, 150, 58, 0.15);
+  border-color: var(--gold);
+  box-shadow: 0 0 15px rgba(201, 150, 58, 0.4);
+}
 
-        document.getElementById("clusterTitle").textContent = cl.name;
-        document.getElementById("clusterMapImg").src = cl.imageFile;
+.gate-label {
+  background: var(--panel-bg);
+  color: var(--gold-light);
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  font-size: 0.7rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 4px;
+  border: 1px solid var(--gold);
+  pointer-events: none;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  letter-spacing: 0.05em;
+  transform: translateY(0);
+  transition: transform 0.2s;
+}
+.cluster-gate-hitbox:hover .gate-label {
+  transform: translateY(-2px);
+  background: #0f2a1f;
+  color: #ffffff;
+}
 
-        document.getElementById("masterView").style.display = "none";
-        document.getElementById("clusterView").style.display = "flex";
+/* DETAIL PANEL */
+#detailPanel{width:0;overflow:hidden;background:var(--panel-bg);transition:width .3s cubic-bezier(.4,0,.2,1);
+  display:flex;flex-direction:column;border-left:1px solid rgba(255,255,255,.08);
+  position:relative;z-index:10;flex-shrink:0;}
+#detailPanel.open{width:360px}
+#detailPanelInner{width:360px;height:100%;overflow-y:auto;padding:1.25rem 1.25rem 2rem;
+  scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.15) transparent;}
 
-        updateBreadcrumb(key);
-        renderStatsStrip(key);
-        renderClusterKavlingLayer(key); // Menggambar kotak overlay warna status kaveling secara real-time
-        document.getElementById("btnExport").style.display = isAdmin
-          ? "flex"
-          : "none";
-      }
+/* CLUSTER VIEW */
+#clusterView{position:absolute;inset:0;background:#f0ebe0;display:none;flex-direction:column;}
+#clusterView.show{display:flex}
+#clusterHeader{background:linear-gradient(90deg,#0d2518,#1a4028);padding:.75rem 1.5rem;
+  display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid var(--gold);flex-shrink:0;}
+#clusterTitle{font-family:'Playfair Display',serif;color:var(--gold);font-size:1.1rem}
+#clusterSubtitle{font-size:.72rem;color:rgba(255,255,255,.5);margin-top:.1rem;letter-spacing:.06em}
+.btn-back{display:flex;align-items:center;gap:.4rem;padding:.35rem .85rem;border-radius:5px;
+  background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:white;
+  font-size:.78rem;font-weight:600;cursor:pointer;transition:all .15s;}
+.btn-back:hover{background:rgba(255,255,255,.18)}
+#clusterBody{flex:1;display:flex;overflow:hidden;justify-content:center;align-items:center;padding:1rem;}
 
-      function goMaster() {
-        currentCluster = null;
-        currentKavlingId = null;
-        document.getElementById("masterView").style.display = "flex";
-        document.getElementById("clusterView").style.display = "none";
-        updateBreadcrumb(null);
-        document.getElementById("btnExport").style.display = "none";
-      }
+/* CONTAINER MAP KAVLING OVERLAY */
+#clusterMapWrap{
+  position:relative;
+  display:inline-block;
+  box-shadow:0 8px 24px rgba(0,0,0,0.15);
+  border-radius:8px;
+  overflow:hidden;
+  max-width: 100%;
+  max-height: 74vh;
+}
+#clusterMapWrap img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  max-height: 74vh;
+}
 
-      function updateBreadcrumb(key) {
-        const bc = document.getElementById("breadcrumb");
-        if (!key) {
-          bc.innerHTML = `<span class="bc-sep">›</span><span class="bc-active">Master Plan</span>`;
-          return;
-        }
-        bc.innerHTML = `<span class="bc-sep">›</span><span class="bc-link" onclick="goMaster()">Master Plan</span><span class="bc-sep">›</span><span class="bc-active">${CLUSTERS[key].name}</span>`;
-      }
+/* INDIVIDUAL INTERACTIVE KAVLING BOXES WITH SEMI-TRANSPARENT STATUS COLORS */
+.kavling-hitbox {
+  position: absolute;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  font-size: 0.72rem;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.9);
+  cursor: pointer;
+  transition: all 0.18s ease;
+  border: 1px dashed rgba(255, 255, 255, 0.5);
+  border-radius: 2px;
+}
+.kavling-hitbox:hover {
+  transform: scale(1.02);
+  z-index: 10;
+  border: 2px solid var(--white);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+  outline: 2px solid var(--gold);
+}
 
-      function renderStatsStrip(key) {
-        const all = Object.values(CLUSTERS[key].kavling);
-        const c = { available: 0, booked: 0, sold: 0 };
-        all.forEach((k) => c[k.status]++);
-        document.getElementById("statsStrip").innerHTML = `
+/* STATUS OVERLAY COLORS */
+.kv-status-available { background: rgba(61, 158, 104, 0.55); } /* Green translucent */
+.kv-status-booked { background: rgba(212, 135, 14, 0.6); }    /* Orange translucent */
+.kv-status-sold { background: rgba(184, 48, 48, 0.6); }       /* Red translucent */
+
+/* STATS STRIP */
+#statsStrip{display:flex;gap:0;border-top:1px solid rgba(255,255,255,.08);flex-shrink:0;}
+.stat-item{flex:1;padding:.5rem;text-align:center;border-right:1px solid rgba(255,255,255,.06);}
+.stat-item:last-child{border-right:none}
+.stat-num{font-size:1rem;font-weight:700;color:white}
+.stat-lbl{font-size:.58rem;text-transform:uppercase;letter-spacing:.07em;color:rgba(255,255,255,.4);margin-top:.1rem}
+.stat-available .stat-num{color:#6dd69a}
+.stat-booked .stat-num{color:#f0b44a}
+.stat-sold .stat-num{color:#ef8080}
+
+/* CLUSTER CARDS */
+.cluster-info-card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;
+  padding:.9rem 1rem;margin-bottom:.6rem;cursor:pointer;transition:all .18s;}
+.cluster-info-card:hover{background:rgba(255,255,255,.1);border-color:var(--gold);transform:translateX(3px)}
+.cic-name{font-size:.9rem;font-weight:700;color:white;margin-bottom:.3rem}
+.cic-meta{font-size:.72rem;color:rgba(255,255,255,.45);display:flex;gap:.75rem}
+.cic-bar{height:4px;background:rgba(255,255,255,.1);border-radius:2px;margin-top:.65rem;overflow:hidden}
+.cic-bar-fill{height:100%;border-radius:2px;background:var(--gold)}
+
+/* MODALS */
+.modal-overlay{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.75);backdrop-filter:blur(6px);
+  display:flex;align-items:center;justify-content:center;padding:1rem;
+  opacity:0;pointer-events:none;transition:opacity .22s;}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{background:#0f2520;border:1px solid rgba(255,255,255,.1);border-radius:12px;width:100%;
+  max-width:580px;max-height:90vh;overflow-y:auto;padding:1.75rem;
+  transform:translateY(16px);transition:transform .22s ease;
+  scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.15) transparent;}
+.modal-overlay.open .modal{transform:none}
+.modal-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.25rem}
+.modal-title{font-family:'Playfair Display',serif;font-size:1.2rem;color:white}
+.modal-sub{font-size:.75rem;color:rgba(255,255,255,.45);margin-top:.2rem}
+.modal-close{background:none;border:none;cursor:pointer;color:rgba(255,255,255,.5);font-size:1.5rem;line-height:1;padding:.1rem}
+.modal-close:hover{color:white}
+
+/* KAVLING DETAIL POPUP */
+#kavlingModal .modal{max-width:620px}
+.kv-popup-grid{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.75rem}
+.kv-popup-cell{background:rgba(255,255,255,.05);border-radius:6px;padding:.6rem .75rem;border:1px solid rgba(255,255,255,.07)}
+.kv-popup-label{font-size:.6rem;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.4);margin-bottom:.2rem}
+.kv-popup-val{font-size:.9rem;font-weight:600;color:white}
+.popup-doc-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-top:.5rem}
+.popup-doc-box{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:8px;overflow:hidden}
+.popup-doc-title{font-size:.65rem;text-transform:uppercase;letter-spacing:.08em;color:var(--gold);
+  font-weight:700;padding:.5rem .75rem;border-bottom:1px solid rgba(255,255,255,.08)}
+.popup-doc-img{width:100%;height:160px;object-fit:contain;background:rgba(0,0,0,.3);display:block}
+.popup-doc-empty{height:160px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  color:rgba(255,255,255,.25);font-size:.78rem;gap:.4rem}
+.popup-doc-empty span{font-size:2rem;opacity:.4}
+.popup-buyer-section{background:rgba(255,255,255,.04);border-radius:8px;padding:.9rem;border:1px solid rgba(255,255,255,.07);margin-bottom:.75rem}
+.popup-actions{display:grid;grid-template-columns:1fr;gap:.5rem;margin-top:.75rem}
+.popup-actions.two-cols{grid-template-columns:1fr 1fr}
+
+/* FORM */
+.form-section{font-size:.6rem;text-transform:uppercase;letter-spacing:.1em;color:var(--gold);font-weight:700;
+  margin:1.1rem 0 .6rem;padding-bottom:.3rem;border-bottom:1px solid rgba(255,255,255,.08)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:.7rem}
+.form-group{margin-bottom:.7rem}
+.form-group label{display:block;font-size:.68rem;font-weight:600;letter-spacing:.06em;color:rgba(255,255,255,.55);margin-bottom:.28rem;text-transform:uppercase}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:.5rem .75rem;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:5px;
+  font-family:'Inter',sans-serif;font-size:.82rem;color:white;outline:none;transition:border-color .18s;}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--gold)}
+.form-group select option{background:#1a3028;color:white}
+.form-group textarea{resize:vertical;min-height:60px}
+.form-group input[readonly]{opacity:.5;cursor:not-allowed}
+.btn-submit{width:100%;padding:.7rem;margin-top:.5rem;background:var(--moss);color:white;border:none;border-radius:7px;
+  font-size:.88rem;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;transition:background .15s;}
+.btn-submit:hover{background:#3a8450}
+.login-modal{max-width:360px}
+
+/* UPLOAD ZONE */
+.upload-zone{border:1.5px dashed rgba(255,255,255,.2);border-radius:6px;padding:.6rem;text-align:center;cursor:pointer;
+  transition:border-color .18s,background .18s;background:rgba(255,255,255,.03);}
+.upload-zone:hover{border-color:var(--gold);background:rgba(201,150,58,.06)}
+.uz-icon{font-size:1.3rem;margin-bottom:.25rem}
+.upload-zone p {font-size:.68rem;color:rgba(255,255,255,.4)}
+.upload-zone p strong{color:rgba(255,255,255,.65)}
+.upload-preview{margin-top:.4rem;display:none}
+.upload-preview img{width:100%;max-height:80px;object-fit:cover;border-radius:4px;border:1px solid rgba(255,255,255,.12)}
+.up-name{font-size:.62rem;color:rgba(255,255,255,.45);margin-top:.2rem;text-overflow:ellipsis;overflow:hidden;white-space:nowrap}
+.up-clear{font-size:.62rem;color:#ef8080;cursor:pointer}
+
+/* TOAST */
+.toast{position:fixed;bottom:1.5rem;right:1.5rem;z-index:900;background:#0f2520;color:rgba(255,255,255,.9);
+  padding:.7rem 1.1rem;border-radius:7px;font-size:.82rem;box-shadow:0 8px 24px rgba(0,0,0,.4);
+  transform:translateY(60px);opacity:0;transition:all .3s cubic-bezier(.34,1.56,.64,1);
+  max-width:300px;border-left:3px solid var(--gold);}
+.toast.show{transform:none;opacity:1}
+.toast.error{border-left-color:var(--sold)}
+
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:3px}
+</style>
+</head>
+<body>
+
+<nav id="nav">
+  <div style="display:flex;align-items:center">
+    <div class="nav-brand">Villa Bukit Tidar<small>SITEPLAN INTERAKTIF</small></div>
+    <div id="breadcrumb"><span class="bc-sep">›</span><span class="bc-active">Master Plan</span></div>
+  </div>
+  <div class="nav-actions">
+    <span id="navUser" style="font-size:.75rem;color:var(--gold);font-weight:600;display:none">⚙ Admin</span>
+    <button class="nav-btn ghost" id="btnLogin" onclick="openLoginModal()">Login Admin</button>
+    <button class="nav-btn ghost" id="btnLogout" onclick="doLogout()" style="display:none">Keluar</button>
+    <button class="nav-btn gold" id="btnExport" onclick="exportCurrentPdf()" style="display:none">⬇ Export Rekap PDF</button>
+  </div>
+</nav>
+
+<div id="legendBar">
+  <span class="leg-label">STATUS :</span>
+  <div class="leg-item"><div class="leg-dot" style="background:var(--available)"></div>Tersedia</div>
+  <div class="leg-item"><div class="leg-dot" style="background:var(--booked)"></div>Dipesan</div>
+  <div class="leg-item"><div class="leg-dot" style="background:var(--sold)"></div>Terjual</div>
+</div>
+
+<div id="adminBar">⚙ MODE ADMIN — Klik kavling untuk melihat & edit data</div>
+
+<div id="canvas">
+  
+  <!-- MASTER PLAN VIEW WITH PHYSICAL SITEPLAN IMAGE -->
+  <div id="masterView">
+    <div id="masterMap">
+      <div class="master-image-wrap">
+        <img src="siteplan_kamu.png" alt="Master Plan Villa Bukit Tidar">
+        
+        <!-- Pintu Masuk Cluster Interaktif -->
+        <div class="cluster-gate-hitbox" onclick="openCluster('A')" style="top: 3%; left: 10%; width: 35%; height: 35%;">
+          <span class="gate-label">📍 Cluster SPACIO</span>
+        </div>
+        
+        <div class="cluster-gate-hitbox" onclick="openCluster('B')" style="top:40%; left: 50%; width: 35%; height: 35%;">
+          <span class="gate-label">📍 Cluster AZALEA</span>
+        </div>
+        
+        <div class="cluster-gate-hitbox" onclick="openCluster('C')" style="top: 58%; left: 10%; width: 50%; height: 35%;">
+          <span class="gate-label">📍 Cluster BLOCK E</span>
+        </div>
+      </div>
+    </div>
+    
+    <!-- MASTER RIGHT PANEL DETAILED INFO -->
+    <div id="detailPanel">
+      <div id="detailPanelInner">
+        <div style="margin-bottom:1.25rem">
+          <div style="font-size:.62rem;text-transform:uppercase;letter-spacing:.1em;color:var(--gold);font-weight:700;margin-bottom:.8rem">CLUSTER PROYEK</div>
+          <div class="cluster-info-card" onclick="openCluster('A')">
+            <div class="cic-name">Cluster SPACIO</div>
+            <div class="cic-meta"><span>10 kavling</span><span style="color:#6dd69a">6 tersedia</span></div>
+            <div class="cic-bar"><div class="cic-bar-fill" style="width:60%"></div></div>
+          </div>
+          <div class="cluster-info-card" onclick="openCluster('B')">
+            <div class="cic-name">Cluster AZALEA</div>
+            <div class="cic-meta"><span>8 kavling</span><span style="color:#6dd69a">4 tersedia</span></div>
+            <div class="cic-bar"><div class="cic-bar-fill" style="width:50%"></div></div>
+          </div>
+          <div class="cluster-info-card" onclick="openCluster('C')">
+            <div class="cic-name">Cluster BLOCK E</div>
+            <div class="cic-meta"><span>16 kavling</span><span style="color:#6dd69a">9 tersedia</span></div>
+            <div class="cic-bar"><div class="cic-bar-fill" style="width:56%"></div></div>
+          </div>
+        </div>
+        <div style="border-top:1px solid rgba(255,255,255,.08);padding-top:1rem">
+          <div style="font-size:.62rem;text-transform:uppercase;letter-spacing:.1em;color:var(--gold);font-weight:700;margin-bottom:.75rem">TOTAL PROYEK</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem">
+            <div style="background:rgba(61,158,104,.12);border:1px solid rgba(61,158,104,.25);border-radius:7px;padding:.7rem;text-align:center">
+              <div style="font-size:1.4rem;font-weight:700;color:#6dd69a">19</div>
+              <div style="font-size:.6rem;text-transform:uppercase;letter-spacing:.07em;color:rgba(255,255,255,.4);margin-top:.1rem">Tersedia</div>
+            </div>
+            <div style="background:rgba(212,135,14,.12);border:1px solid rgba(212,135,14,.25);border-radius:7px;padding:.7rem;text-align:center">
+              <div style="font-size:1.4rem;font-weight:700;color:#f0b44a">7</div>
+              <div style="font-size:.6rem;text-transform:uppercase;letter-spacing:.07em;color:rgba(255,255,255,.4);margin-top:.1rem">Dipesan</div>
+            </div>
+            <div style="background:rgba(184,48,48,.12);border:1px solid rgba(184,48,48,.25);border-radius:7px;padding:.7rem;text-align:center">
+              <div style="font-size:1.4rem;font-weight:700;color:#ef8080">8</div>
+              <div style="font-size:.6rem;text-transform:uppercase;letter-spacing:.07em;color:rgba(255,255,255,.4);margin-top:.1rem">Terjual</div>
+            </div>
+            <div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:7px;padding:.7rem;text-align:center">
+              <div style="font-size:1.4rem;font-weight:700;color:white">34</div>
+              <div style="font-size:.6rem;text-transform:uppercase;letter-spacing:.07em;color:rgba(255,255,255,.4);margin-top:.1rem">Total Unit</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CLUSTER DETAIL ELEMENT VIEW -->
+  <div id="clusterView">
+    <div id="clusterHeader">
+      <div>
+        <div id="clusterTitle">Cluster Detail</div>
+        <div id="clusterSubtitle">Klik kavling untuk memunculkan data detail properti resmi</div>
+      </div>
+      <div style="display:flex;gap:.5rem;align-items:center">
+        <button class="btn-back" onclick="goMaster()">← Master Plan</button>
+      </div>
+    </div>
+    <div id="clusterBody">
+      <div id="clusterMapWrap">
+        <!-- Target gambar dinamis (.png) -->
+        <img id="clusterMapImg" src="" alt="Cluster Map Screen">
+        
+        <!-- Wadah overlay kotak warna status kaveling -->
+        <div id="dynamicKavlingLayer" style="position:absolute; inset:0; pointer-events:auto;"></div>
+      </div>
+    </div>
+    <div id="statsStrip" style="background:rgba(10,22,14,.9)"></div>
+  </div>
+</div>
+
+<!-- MODALS SYSTEM -->
+<div class="modal-overlay" id="kavlingModal" onclick="closeOnBdrop(event,'kavlingModal')">
+  <div class="modal" style="max-width:660px">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="kvm-title">Kavling A1</div>
+        <div class="modal-sub" id="kvm-sub">Cluster · Blok A</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('kavlingModal')">×</button>
+    </div>
+    <div id="kvm-status-badge" class="status-badge sb-available" style="margin-bottom:1rem">● Tersedia</div>
+    <div class="kv-popup-grid" id="kvm-info-grid"></div>
+    <div id="kvm-buyer-section" style="display:none">
+      <div class="form-section">Data Pembeli Resmi</div>
+      <div class="popup-buyer-section" id="kvm-buyer-content"></div>
+    </div>
+    <div id="kvm-doc-section" style="display:none">
+      <div class="form-section">Lampiran Dokumen</div>
+      <div class="popup-doc-grid">
+        <div class="popup-doc-box">
+          <div class="popup-doc-title">🪪 KTP Pembeli</div>
+          <div id="kvm-ktp-wrap"></div>
+        </div>
+        <div class="popup-doc-box">
+          <div class="popup-doc-title">👨‍👩‍👧 Kartu Keluarga</div>
+          <div id="kvm-kk-wrap"></div>
+        </div>
+      </div>
+    </div>
+    <div class="popup-actions" id="kvm-actions"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="loginModal" onclick="closeOnBdrop(event,'loginModal')">
+  <div class="modal login-modal">
+    <div class="modal-header">
+      <div><div class="modal-title">Login Admin</div><div class="modal-sub">Masuk untuk mengelola data properti</div></div>
+      <button class="modal-close" onclick="closeModal('loginModal')">×</button>
+    </div>
+    <div class="form-group"><label>Username</label><input type="text" id="loginUser" value="admin"/></div>
+    <div class="form-group"><label>Password</label><input type="password" id="loginPass" value="admin123" onkeydown="if(event.key==='Enter')doLogin()"/></div>
+    <button class="btn-submit" onclick="doLogin()">Masuk</button>
+    <p style="font-size:.7rem;color:rgba(255,255,255,.35);text-align:center;margin-top:.75rem">Demo: admin / admin123</p>
+  </div>
+</div>
+
+<div class="modal-overlay" id="adminModal" onclick="closeOnBdrop(event,'adminModal')">
+  <div class="modal">
+    <div class="modal-header">
+      <div><div class="modal-title" id="adminModalTitle">Edit Data Kavling</div><div class="modal-sub" id="adminModalSub">Formulir Update Database</div></div>
+      <button class="modal-close" onclick="closeModal('adminModal')">×</button>
+    </div>
+    <div class="form-section">Data Fisik Properti</div>
+    <div class="form-row">
+      <div class="form-group"><label>No. Kavling</label><input type="text" id="f-id" readonly/></div>
+      <div class="form-group"><label>Status</label>
+        <select id="f-status">
+          <option value="available">Tersedia</option>
+          <option value="booked">Dipesan</option>
+          <option value="sold">Terjual</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Luas (m²)</label><input type="number" id="f-luas"/></div>
+      <div class="form-group"><label>Harga Standar (Rp)</label><input type="number" id="f-harga"/></div>
+    </div>
+    <div class="form-group"><label>Tipe Bangunan</label>
+      <select id="f-tipe">
+        <option value="">— Pilih Tipe —</option>
+        <option value="36/72">36/72</option>
+        <option value="45/90">45/90</option>
+        <option value="54/120">54/120</option>
+        <option value="72/144">72/144</option>
+        <option value="Kavling Tanah">Kavling Tanah Kosong</option>
+      </select>
+    </div>
+
+    <div class="form-section">Data Identitas Pembeli</div>
+    <div class="form-group"><label>Nama Lengkap Pembeli</label><input type="text" id="f-nama"/></div>
+    <div class="form-group"><label>Alamat Tinggal</label><input type="text" id="f-alamat"/></div>
+    <div class="form-row">
+      <div class="form-group"><label>No. KTP / SIM</label><input type="text" id="f-noktp"/></div>
+      <div class="form-group"><label>No. HP Aktif</label><input type="text" id="f-hp"/></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>No. SPR Terbit</label><input type="text" id="f-nospr"/></div>
+      <div class="form-group"><label>Metode Transaksi</label>
+        <select id="f-metode">
+          <option value="">— Pilih —</option>
+          <option value="Cash">Cash / Tunai Keras</option>
+          <option value="KPR">KPR Perbankan</option>
+          <option value="Cash Tempo">Cash Tempo / Bertahap</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Harga Deal Akhir (Rp)</label><input type="number" id="f-jumlah"/></div>
+      <div class="form-group"><label>Nilai Uang Muka / DP (Rp)</label><input type="number" id="f-dp"/></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Kelebihan Tanah (Rp)</label><input type="number" id="f-kelebihan"/></div>
+      <div class="form-group"><label>Discount / Potongan (Rp)</label><input type="number" id="f-discount"/></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>Tanggal Akad / SPR</label><input type="date" id="f-tanggal"/></div>
+      <div class="form-group"><label>Penambahan Mutu (Rp)</label><input type="number" id="f-mutu"/></div>
+    </div>
+    <div class="form-group"><label>Catatan Khusus Tambahan</label><textarea id="f-catatan"></textarea></div>
+
+    <div class="form-section">Upload Dokumen Legalitas (Gambar)</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Foto Dokumen KTP</label>
+        <div class="upload-zone" onclick="document.getElementById('file-ktp').click()">
+          <input type="file" id="file-ktp" accept="image/*" style="display:none" onchange="handleUpload(event,'ktp')"/>
+          <div class="uz-icon">🪪</div>
+          <p><strong>Klik Area</strong> untuk upload KTP</p>
+          <div class="upload-preview" id="prev-ktp">
+            <img id="img-ktp" src="" alt="KTP"/>
+            <div class="up-name" id="name-ktp"></div>
+          </div>
+        </div>
+        <div id="clear-ktp" style="display:none;text-align:right;margin-top:.25rem">
+          <span class="up-clear" onclick="clearUpload('ktp')">✕ Hapus Berkas</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Foto Kartu Keluarga (KK)</label>
+        <div class="upload-zone" onclick="document.getElementById('file-kk').click()">
+          <input type="file" id="file-kk" accept="image/*" style="display:none" onchange="handleUpload(event,'kk')"/>
+          <div class="uz-icon">👨‍👩‍👧</div>
+          <p><strong>Klik Area</strong> untuk upload KK</p>
+          <div class="upload-preview" id="prev-kk">
+            <img id="img-kk" src="" alt="KK"/>
+            <div class="up-name" id="name-kk"></div>
+          </div>
+        </div>
+        <div id="clear-kk" style="display:none;text-align:right;margin-top:.25rem">
+          <span class="up-clear" onclick="clearUpload('kk')">✕ Hapus Berkas</span>
+        </div>
+      </div>
+    </div>
+    <button class="btn-submit" onclick="saveKavling()">💾 Simpan & Sinkronisasi Data</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════════════════════════════
+// DATA SYSTEM & DETAILED PERCENTAGE COORDINATES FOR MAP PNG OVERLAYS
+// ══════════════════════════════════════════════════════════════════════
+const CLUSTERS = {
+  A: {
+    name: 'Cluster SPACIO', imageFile: 'SPACIO.png', color: '#3d9e68', subtitle: 'Kavling Hunian Modern Premium',
+    kavling: {
+      // Baris Atas (Contoh koordinat denah gambar SPACIO)
+      A1:  {id:'A1',  top:22, left:8,  w:13, h:24, blok:'A',luas:120,harga:480000000,tipe:'36/72',  status:'available',nama:'',alamat:'',noktp:'',hp:'',nospr:'',metode:'',jumlah:0,dp:0,kelebihan:0,discount:0,mutu:0,tanggal:'',catatan:'',imgKtp:'',imgKk:''},
+      A2:  {id:'A2',  top:22, left:23, w:13, h:24, blok:'A',luas:120,harga:490000000,tipe:'45/90',  status:'booked',   nama:'Budi Santoso',alamat:'Jl. Mawar No.5 Malang',noktp:'3507123456789001',hp:'08123456789',nospr:'SPR-2024-001',metode:'KPR',jumlah:490000000,dp:98000000,kelebihan:0,discount:5000000,mutu:0,tanggal:'2024-03-15',catatan:'Proses berkas perbankan',imgKtp:'',imgKk:''},
+      A3:  {id:'A3',  top:22, left:38, w:13, h:24, blok:'A',luas:120,harga:495000000,tipe:'45/90',  status:'sold',     nama:'Dewi Rahayu', alamat:'Jl. Kenanga No.12 Batu',noktp:'3507987654321002',hp:'08234567890',nospr:'SPR-2024-002',metode:'Cash',jumlah:495000000,dp:495000000,kelebihan:0,discount:0,mutu:0,tanggal:'2024-01-20',catatan:'Lunas Valid',imgKtp:'',imgKk:''},
+      A4:  {id:'A4',  top:22, left:53, w:13, h:24, blok:'A',luas:120,harga:488000000,tipe:'36/72',  status:'available',nama:'',alamat:'',noktp:'',hp:'',nospr:'',metode:'',jumlah:0,dp:0,kelebihan:0,discount:0,mutu:0,tanggal:'',catatan:'',imgKtp:'',imgKk:''},
+      A5:  {id:'A5',  top:22, left:68, w:13, h:24, blok:'A',luas:120,harga:485000000,tipe:'36/72',  status:'available',nama:'',alamat:'',noktp:'',hp:'',nospr:'',metode:'',jumlah:0,dp:0,kelebihan:0,discount:0,mutu:0,tanggal:'',catatan:'',imgKtp:'',imgKk:''},
+      // Baris Bawah
+      A6:  {id:'A6',  top:54, left:8,  w:13, h:24, blok:'A',luas:130,harga:520000000,tipe:'45/90',  status:'sold',     nama:'Hendra Prasetyo',alamat:'Jl. Dahlia No.8 Malang',noktp:'3507456789012003',hp:'08345678901',nospr:'SPR-2023-010',metode:'Cash',jumlah:520000000,dp:520000000,kelebihan:0,discount:0,mutu:0,tanggal:'2023-10-05',catatan:'',imgKtp:'',imgKk:''},
+      A7:  {id:'A7',  top:54, left:23, w:13, h:24, blok:'A',luas:130,harga:522000000,tipe:'45/90',  status:'available',nama:'',alamat:'',noktp:'',hp:'',nospr:'',metode:'',jumlah:0,dp:0,kelebihan:0,discount:0,mutu:0,tanggal:'',catatan:'',imgKtp:'',imgKk:''},
+      A8:  {id:'A8',  top:54, left:38, w:13, h:24, blok:'A',luas:130,harga:525000000,tipe:'54/120', status:'booked',   nama:'Rina Wulandari',alamat:'Jl. Melati No.3 Kepanjen',noktp:'3507111222333004',hp:'08456789012',nospr:'SPR-2024-008',metode:'Cash Tempo',jumlah:525000000,dp:80000000,kelebihan:0,discount:0,mutu:0,tanggal:'2024-05-12',catatan:'Titipan Termin 1',imgKtp:'',imgKk:''},
+      A9:  {id:'A9',  top:54, left:53, w:13, h:24, blok:'A',luas:120,harga:484000000,tipe:'36/72',  status:'available',nama:'',alamat:'',noktp:'',hp:'',nospr:'',metode:'',jumlah:0,dp:0,kelebihan:0,discount:0,mutu:0,tanggal:'',catatan:'',imgKtp:'',imgKk:''},
+      A10: {id:'A10', top:54, left:68, w:13, h:24, blok:'A',luas:120,harga:486000000,tipe:'36/72',  status:'available',nama:'',alamat:'',noktp:'',hp:'',nospr:'',metode:'',jumlah:0,dp:0,kelebihan:0,discount:0,mutu:0,tanggal:'',catatan:'',imgKtp:'',imgKk:''},
+    }
+  },
+  B: {
+    name: 'Cluster AZALEA', imageFile: 'AZALEA.png', color: '#407ea0', subtitle: 'Kavling Premium Eksklusif',
+    kavling: {
+      // Baris Atas (Contoh koordinat denah gambar AZALEA)
+      B1: {id:'B1', top:25, left:10, w:16, h:22, blok:'B',luas:144,harga:576000000,tipe:'54/120',status:'available',nama:'',alamat:'',noktp:'',hp:'',nospr:'',metode:'',jumlah:0,dp:0,kelebihan:0,discount:0,mutu:0,tanggal:'',catatan:'',imgKtp:'',imgKk:''},
+      B2: {id:'B2', top:25, left:28, w:16, h:22, blok:'B',luas:144,harga:582000000,tipe:'54/120',status:'sold',     nama:'Agus Purnomo',  alamat:'Jl. Anggrek No.15 Malang',noktp:'3507222333444005',hp:'08567890123',nospr:'SPR-2024-003',metode:'Cash Tempo',jumlah:582000000,dp:582000000,kelebihan:0,discount:0,mutu:0,tanggal:'2024-02-10',catatan:'',imgKtp:'',imgKk:''},
+      B3: {id:'B3', top:25, left:46, w:16, h:22, blok:'B',luas:152,harga:608000000,tipe:'54/120',status:'booked',   nama:'Hendro Wijaya', alamat:'Jl. Flamboyan No.7 Batu',noktp:'3507333444555006',hp:'08678901234',nospr:'SPR-2024-005',metode:'KPR',jumlah:608000000,dp:100000000,kelebihan:0,discount:8000000,mutu:0,tanggal:'2024-05-10',catatan:'',imgKtp:'',imgKk:''},
+      B4: {id:'B4', top:25, left:64, w:16, h:22, blok:'B',luas:152,harga:612000000,tipe:'72/144',status:'available',nama:'',alamat:'',noktp:'',hp:'',nospr:'',metode:'',jumlah:0,dp:0,kelebihan:0,discount:0,mutu:0,tanggal:'',catatan:'',imgKtp:'',imgKk:''},
+      // Baris Bawah
+      B5: {id:'B5', top:55, left:10, w:16, h:22, blok:'B',luas:160,harga:640000000,tipe:'72/144',status:'available',nama:'',alamat:'',noktp:'',hp:'',nospr:'',metode:'',jumlah:0,dp:0,kelebihan:0,discount:0,mutu:0,tanggal:'',catatan:'',imgKtp:'',imgKk:''},
+      B6: {id:'B6', top:55, left:28, w:16, h:22, blok:'B',luas:144,harga:578000000,tipe:'54/120',status:'sold',     nama:'Siti Nurhayati',alamat:'Jl. Bougenville No.2 Malang',noktp:'3507444555666007',hp:'08789012345',nospr:'SPR-2023-015',metode:'KPR',jumlah:578000000,dp:578000000,kelebihan:0,discount:0,mutu:0,tanggal:'2023-11-05',catatan:'',imgKtp:'',imgKk:''},
+      B7: {id:'B7', top:55, left:46, w:16, h:22, blok:'B',luas:144,harga:580000000,tipe:'54/120',status:'available',nama:'',alamat:'',noktp:'',hp:'',nospr:'',metode:'',jumlah:0,dp:0,kelebihan:0,discount:0,mutu:0,tanggal:'',catatan:'',imgKtp:'',imgKk:''},
+      B8: {id:'B8', top:55, left:64, w:16, h:22, blok:'B',luas:240,harga:960000000,tipe:'Kavling Tanah',status:'booked',nama:'PT Maju Jaya',alamat:'Jl. Raya Industri No.50 Malang',noktp:'-',hp:'0341-123456',nospr:'SPR-2024-007',metode:'Cash',jumlah:960000000,dp:200000000,kelebihan:0,discount:50000000,mutu:0,tanggal:'2024-06-01',catatan:'Nego Luas Aktual',imgKtp:'',imgKk:''},
+    }
+  },
+  C: {
+    name: 'Cluster BLOCK E', imageFile: 'BLOCK_E.jpg', color: '#b83030', subtitle: 'Kavling Strategis Blok E',
+    kavling: {
+      // Kisi Baris 1 (Contoh koordinat denah gambar BLOCK E)
+      C1:  {id:'C1',  top:15, left:6,  w:10, h:35, blok:'C',luas:180,harga:720000000,tipe:'72/144',status:'available',nama:'',alamat:'',noktp:'',hp:'',nospr:'',metode:'',jumlah:0,dp:0,kelebihan:0,discount:0,mutu:0,tanggal:'',catatan:'',imgKtp:'',imgKk:''},
+      C2:  {id:'C2',  top:15, left:18, w:10, h:35, blok:'C',luas:180,harga:724000000,tipe:'72/144',status:'sold',     nama:'Bambang Eko',   alamat:'Jl. Teratai No.11 Malang',noktp:'3507555666777008',hp:'08890123456',nospr:'SPR-2023-030',metode:'KPR',jumlah:724000000,dp:724000000,kelebihan:0,discount:0,mutu:0,tanggal:'2023-09-14',catatan:'',imgKtp:'',imgKk:''},
+      C3:  {id:'C3',  top:15, left:30, w:10, h:35, blok:'C',luas:180,harga:726000000,tipe:'72/144',status:'available',nama:'',alamat:'',noktp:'',hp:'',nospr:'',metode:'',jumlah:0,dp:0,kelebihan:0,discount:0,mutu:0,tanggal:'',catatan:'',imgKtp:'',imgKk:''},
+      C4:  {id:'C4',  top:15, left:42, w:10, h:35, blok:'C',luas:200,harga:800000000,tipe:'Kavling Tanah',status:'booked',nama:'Yunita Sari',alamat:'Jl. Pahlawan No.4 Malang',noktp:'3507666777888009',hp:'08901234567',nospr:'SPR-2024-011',metode:'Cash Tempo',jumlah:800000000,dp:100000000,kelebihan:0,discount:0,mutu:0,tanggal:'2024-06-15',catatan:'',imgKtp:'',imgKk:''},
+      C5:  {id:'C5',  top:15, left:54, w:10, h:35, blok:'C',luas:200,harga:810000000,tipe:'Kavling Tanah',status:'available',nama:'',alamat:'',noktp:'',hp:'',nospr:'',metode:'',jumlah:0,dp:0,kelebihan:0,discount:0,mutu:0,tanggal:'',catatan:'',imgKtp:'',imgKk:''},
+      C6:  {id:'C6',  top:15, left:66, w:10, h:35, blok:'C',luas:200,harga:812000000,tipe:'Kavling Tanah',status:'sold',     nama:'Rini Susanti', alamat:'Jl. Merdeka No.22 Batu',noktp:'3507777888999010',hp:'08112345678',nospr:'SPR-2023-022',metode:'Cash',jumlah:812000000,dp:812000000,kelebihan:0,discount:0,mutu:0,tanggal:'2023-12-01',catatan:'',imgKtp:'',imgKk:''},
+      C7:  {id:'C7',  top:15, left:78, w:10, h:35, blok:'C',luas:180,harga:722000000,tipe:'72/144',status:'booked',   nama:'Sri Wahyuni',  alamat:'Jl. Diponegoro No.9 Malang',noktp:'3507888999000011',hp:'08223456789',nospr:'SPR-2024-013',metode:'KPR',jumlah:722000000,dp:150000000,kelebihan:0,discount:10000000,mutu:0,tanggal:'2024-04-25',catatan:'',imgKtp:'',imgKk:''},
+      C8:  {id:'C8',  top:15, left:90, w:8,  h:35, blok:'C',luas:180,harga:720000000,tipe:'72/144',status:'available',nama:'',alamat:'',noktp:'',hp:'',nospr:'',metode:'',jumlah:0,dp:0,kelebihan:0,discount:0,mutu:0,tanggal:'',catatan:'',imgKtp:'',imgKk:''},
+      // Kisi Baris 2
+      C9:  {id:'C9',  top:55, left:6,  w:10, h:35, blok:'C',luas:200,harga:820000000,tipe:'Kavling Tanah',status:'booked',nama:'Anton Hidayat',alamat:'Jl. Sudirman No.18 Malang',noktp:'3507000111222012',hp:'08334567890',nospr:'SPR-2024-014',metode:'Cash',jumlah:820000000,dp:200000000,kelebihan:0,discount:0,mutu:0,tanggal:'2024-05-20',catatan:'Waiting list',imgKtp:'',imgKk:''},
+      C10: {id:'C10', top:55, left:18, w:10, h:35, blok:'C',luas:200,harga:822000000,tipe:'Kavling Tanah',status:'sold',     nama:'Hendra Kusuma',alamat:'Jl. Basuki Rahmat No.6 Malang',noktp:'3507112233445013',hp:'08445678901',nospr:'SPR-2023-040',metode:'Cash',jumlah:822000000,dp:822000000,kelebihan:0,discount:0,mutu:0,tanggal:'2023-10-10',catatan:'',imgKtp:'',imgKk:''},
+      C11: {id:'C11', top:55, left:30, w:10, h:35, blok:'C',luas:180,harga:724000000,tipe:'72/144',status:'available',nama:'',alamat:'',noktp:'',hp:'',nospr:'',metode:'',jumlah:0,dp:0,kelebihan:0,discount:0,mutu:0,tanggal:'',catatan:'',imgKtp:'',imgKk:''},
+      C12: {id:'C12', top:55, left:42, w:10, h:35, blok:'C',luas:180,harga:726000000,tipe:'72/144',status:'available',nama:'',alamat:'',noktp:'',hp:'',nospr:'',metode:'',jumlah:0,dp:0,kelebihan:0,discount:0,mutu:0,tanggal:'',catatan:'',imgKtp:'',imgKk:''},
+      C13: {id:'C13', top:55, left:54, w:10, h:35, blok:'C',luas:200,harga:810000000,tipe:'Kavling Tanah',status:'available',nama:'',alamat:'',noktp:'',hp:'',nospr:'',metode:'',jumlah:0,dp:0,kelebihan:0,discount:0,mutu:0,tanggal:'',catatan:'',imgKtp:'',imgKk:''},
+      C14: {id:'C14', top:55, left:66, w:10, h:35, blok:'C',luas:200,harga:812000000,tipe:'Kavling Tanah',status:'available',nama:'',alamat:'',noktp:'',hp:'',nospr:'',metode:'',jumlah:0,dp:0,kelebihan:0,discount:0,mutu:0,tanggal:'',catatan:'',imgKtp:'',imgKk:''},
+      C15: {id:'C15', top:55, left:78, w:10, h:35, blok:'C',luas:180,harga:720000000,tipe:'72/144',status:'sold',     nama:'Lia Permata',  alamat:'Jl. Ahmad Yani No.14 Batu',noktp:'3507223344556014',hp:'08556789012',nospr:'SPR-2023-041',metode:'Cash Tempo',jumlah:720000000,dp:720000000,kelebihan:0,discount:0,mutu:0,tanggal:'2023-11-22',catatan:'',imgKtp:'',imgKk:''},
+      C16: {id:'C16', top:55, left:90, w:8,  h:35, blok:'C',luas:180,harga:722000000,tipe:'72/144',status:'available',nama:'',alamat:'',noktp:'',hp:'',nospr:'',metode:'',jumlah:0,dp:0,kelebihan:0,discount:0,mutu:0,tanggal:'',catatan:'',imgKtp:'',imgKk:''},
+    }
+  }
+};
+
+const SL = {available:'Tersedia',booked:'Dipesan',sold:'Terjual'};
+let isAdmin = false;
+let currentCluster = null;
+let currentKavlingId = null;
+
+// ── UPLOAD SYSTEM ──
+function handleUpload(event, type) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const b64 = e.target.result;
+    document.getElementById('img-'+type).src = b64;
+    document.getElementById('name-'+type).textContent = file.name;
+    document.getElementById('prev-'+type).style.display = 'block';
+    document.getElementById('clear-'+type).style.display = 'block';
+    window['_tmp_img_'+type] = b64;
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearUpload(type) {
+  document.getElementById('img-'+type).src = '';
+  document.getElementById('name-'+type).textContent = '';
+  document.getElementById('prev-'+type).style.display = 'none';
+  document.getElementById('clear-'+type).style.display = 'none';
+  document.getElementById('file-'+type).value = '';
+  window['_tmp_img_'+type] = '';
+}
+
+// ── RENDER OVERLAY KAVLING (WARNA STATUS PAS MENGIKUTI KOTAK GAMBAR CLUSTER) ──
+function renderClusterKavlingLayer(key) {
+  const layer = document.getElementById('dynamicKavlingLayer');
+  layer.innerHTML = '';
+  const kavlingList = Object.values(CLUSTERS[key].kavling);
+  
+  kavlingList.forEach(k => {
+    const box = document.createElement('div');
+    // Menyuntikkan style warna latar belakang semi-transparan berdasarkan status konstruksi/penjualan
+    box.className = `kavling-hitbox kv-status-${k.status}`;
+    
+    // Sinkronisasi posisi koordinat kotak warna tepat di atas denah gambar fisik .png
+    box.style.top = `${k.top}%`;
+    box.style.left = `${k.left}%`;
+    box.style.width = `${k.w}%`;
+    box.style.height = `${k.h}%`;
+    
+    // Teks label nomor kaveling di tengah kotak warna
+    box.textContent = k.id;
+    box.onclick = () => kavlingClick(k.id);
+    layer.appendChild(box);
+  });
+}
+
+// ── NAVIGATION CONTROLLER ──
+function openCluster(key) {
+  currentCluster = key;
+  currentKavlingId = null;
+  const cl = CLUSTERS[key];
+  
+  document.getElementById('clusterTitle').textContent = cl.name;
+  document.getElementById('clusterMapImg').src = cl.imageFile;
+  
+  document.getElementById('masterView').style.display = 'none';
+  document.getElementById('clusterView').style.display = 'flex';
+  
+  updateBreadcrumb(key);
+  renderStatsStrip(key);
+  renderClusterKavlingLayer(key); // Menggambar kotak overlay warna status kaveling secara real-time
+  document.getElementById('btnExport').style.display = isAdmin ? 'flex' : 'none';
+}
+
+function goMaster() {
+  currentCluster = null;
+  currentKavlingId = null;
+  document.getElementById('masterView').style.display = 'flex';
+  document.getElementById('clusterView').style.display = 'none';
+  updateBreadcrumb(null);
+  document.getElementById('btnExport').style.display = 'none';
+}
+
+function updateBreadcrumb(key) {
+  const bc = document.getElementById('breadcrumb');
+  if(!key){bc.innerHTML = `<span class="bc-sep">›</span><span class="bc-active">Master Plan</span>`; return;}
+  bc.innerHTML = `<span class="bc-sep">›</span><span class="bc-link" onclick="goMaster()">Master Plan</span><span class="bc-sep">›</span><span class="bc-active">${CLUSTERS[key].name}</span>`;
+}
+
+function renderStatsStrip(key) {
+  const all = Object.values(CLUSTERS[key].kavling);
+  const c = {available:0,booked:0,sold:0};
+  all.forEach(k => c[k.status]++);
+  document.getElementById('statsStrip').innerHTML = `
     <div class="stat-item stat-available"><div class="stat-num">${c.available}</div><div class="stat-lbl">Tersedia</div></div>
     <div class="stat-item stat-booked"><div class="stat-num">${c.booked}</div><div class="stat-lbl">Dipesan</div></div>
     <div class="stat-item stat-sold"><div class="stat-num">${c.sold}</div><div class="stat-lbl">Terjual</div></div>
     <div class="stat-item"><div class="stat-num">${all.length}</div><div class="stat-lbl">Total</div></div>`;
-      }
+}
 
-      // ── ACTION POPUP CONTROLLER ──
-      function kavlingClick(id) {
-        currentKavlingId = id;
-        const d = CLUSTERS[currentCluster].kavling[id];
-        openKavlingPopup(d);
-      }
+// ── ACTION POPUP CONTROLLER ──
+function kavlingClick(id) {
+  currentKavlingId = id;
+  const d = CLUSTERS[currentCluster].kavling[id];
+  openKavlingPopup(d);
+}
 
-      function openKavlingPopup(d) {
-        const cl = CLUSTERS[currentCluster];
-        document.getElementById("kvm-title").textContent = "Kavling " + d.id;
-        document.getElementById("kvm-sub").textContent =
-          cl.name + " · Blok " + d.blok;
+function openKavlingPopup(d) {
+  const cl = CLUSTERS[currentCluster];
+  document.getElementById('kvm-title').textContent = 'Kavling ' + d.id;
+  document.getElementById('kvm-sub').textContent = cl.name + ' · Blok ' + d.blok;
 
-        const bc = {
-          available: "sb-available",
-          booked: "sb-booked",
-          sold: "sb-sold",
-        };
-        const badge = document.getElementById("kvm-status-badge");
-        badge.className = "status-badge " + bc[d.status];
-        badge.textContent = "● " + SL[d.status];
+  const bc = {available:'sb-available', booked:'sb-booked', sold:'sb-sold'};
+  const badge = document.getElementById('kvm-status-badge');
+  badge.className = 'status-badge ' + bc[d.status];
+  badge.textContent = '● ' + SL[d.status];
 
-        const infoItems = [
-          { l: "Luas Tanah Actual", v: d.luas + " m²" },
-          { l: "Tipe Bangunan", v: d.tipe || "—" },
-          { l: "Lokasi Blok", v: "Blok " + d.blok },
-          { l: "Nama Cluster", v: cl.name },
-        ];
-        if (isAdmin) {
-          infoItems.push({ l: "Harga Price List", v: fmtRp(d.harga) });
-          infoItems.push({
-            l: "Nilai Deal Transaksi",
-            v: d.jumlah ? fmtRp(d.jumlah) : "—",
-          });
-        }
-        document.getElementById("kvm-info-grid").innerHTML = infoItems
-          .map(
-            (i) => `
+  const infoItems = [
+    {l:'Luas Tanah Actual', v:d.luas + ' m²'},
+    {l:'Tipe Bangunan', v:d.tipe || '—'},
+    {l:'Lokasi Blok', v:'Blok ' + d.blok},
+    {l:'Nama Cluster', v:cl.name},
+  ];
+  if(isAdmin){
+    infoItems.push({l:'Harga Price List', v:fmtRp(d.harga)});
+    infoItems.push({l:'Nilai Deal Transaksi', v:d.jumlah ? fmtRp(d.jumlah) : '—'});
+  }
+  document.getElementById('kvm-info-grid').innerHTML = infoItems.map(i => `
     <div class="kv-popup-cell">
       <div class="kv-popup-label">${i.l}</div>
       <div class="kv-popup-val">${i.v}</div>
-    </div>`,
-          )
-          .join("");
+    </div>`).join('');
 
-        const buyerSec = document.getElementById("kvm-buyer-section");
-        const mp = { Cash: "mp-cash", KPR: "mp-kpr", "Cash Tempo": "mp-tempo" };
-        if (isAdmin && d.nama) {
-          buyerSec.style.display = "block";
-          document.getElementById("kvm-buyer-content").innerHTML = `
+  const buyerSec = document.getElementById('kvm-buyer-section');
+  const mp = {Cash:'mp-cash', KPR:'mp-kpr', 'Cash Tempo':'mp-tempo'};
+  if(isAdmin && d.nama){
+    buyerSec.style.display = 'block';
+    document.getElementById('kvm-buyer-content').innerHTML = `
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:.4rem .75rem">
         <div><div class="kv-popup-label">Nama Konsumen</div><div style="font-size:.84rem;color:white;font-weight:600">${d.nama}</div></div>
         <div><div class="kv-popup-label">No. Telepon / HP</div><div style="font-size:.84rem;color:white;font-weight:600">${d.hp}</div></div>
         <div style="grid-column:1/-1"><div class="kv-popup-label">Alamat Lengkap</div><div style="font-size:.82rem;color:rgba(255,255,255,.8)">${d.alamat}</div></div>
         <div><div class="kv-popup-label">Nomor NIK KTP</div><div style="font-size:.82rem;color:rgba(255,255,255,.8)">${d.noktp}</div></div>
         <div><div class="kv-popup-label">Nomor SPR</div><div style="font-size:.82rem;color:rgba(255,255,255,.8)">${d.nospr}</div></div>
-        <div><div class="kv-popup-label">Sistem Bayar</div><div><span class="method-pill ${mp[d.metode] || ""}">${d.metode}</span></div></div>
-        <div><div class="kv-popup-label">Uang Muka Terbayar</div><div style="font-size:.82rem;color:rgba(255,255,255,.8)">${d.dp ? fmtRp(d.dp) : "—"}</div></div>
-        ${d.tanggal ? `<div><div class="kv-popup-label">Tanggal Validasi</div><div style="font-size:.82rem;color:rgba(255,255,255,.8)">${fmtDate(d.tanggal)}</div></div>` : ""}
-        ${d.catatan ? `<div style="grid-column:1/-1"><div class="kv-popup-label">Memo Deskripsi</div><div style="font-size:.8rem;color:rgba(255,255,255,.7)">${d.catatan}</div></div>` : ""}
+        <div><div class="kv-popup-label">Sistem Bayar</div><div><span class="method-pill ${mp[d.metode]||''}">${d.metode}</span></div></div>
+        <div><div class="kv-popup-label">Uang Muka Terbayar</div><div style="font-size:.82rem;color:rgba(255,255,255,.8)">${d.dp ? fmtRp(d.dp) : '—'}</div></div>
+        ${d.tanggal ? `<div><div class="kv-popup-label">Tanggal Validasi</div><div style="font-size:.82rem;color:rgba(255,255,255,.8)">${fmtDate(d.tanggal)}</div></div>` : ''}
+        ${d.catatan ? `<div style="grid-column:1/-1"><div class="kv-popup-label">Memo Deskripsi</div><div style="font-size:.8rem;color:rgba(255,255,255,.7)">${d.catatan}</div></div>` : ''}
       </div>`;
-        } else {
-          buyerSec.style.display = "none";
-        }
+  } else {
+    buyerSec.style.display = 'none';
+  }
 
-        const docSec = document.getElementById("kvm-doc-section");
-        if (isAdmin) {
-          docSec.style.display = "block";
-          document.getElementById("kvm-ktp-wrap").innerHTML = d.imgKtp
-            ? `<img src="${d.imgKtp}" class="popup-doc-img" alt="KTP" onclick="window.open(this.src)" style="cursor:zoom-in"/>`
-            : `<div class="popup-doc-empty"><span>🪪</span><span>Belum Ter-upload</span></div>`;
-          document.getElementById("kvm-kk-wrap").innerHTML = d.imgKk
-            ? `<img src="${d.imgKk}" class="popup-doc-img" alt="KK" onclick="window.open(this.src)" style="cursor:zoom-in"/>`
-            : `<div class="popup-doc-empty"><span>👨‍👩‍👧</span><span>Belum Ter-upload</span></div>`;
-        } else {
-          docSec.style.display = "none";
-        }
+  const docSec = document.getElementById('kvm-doc-section');
+  if(isAdmin){
+    docSec.style.display = 'block';
+    document.getElementById('kvm-ktp-wrap').innerHTML = d.imgKtp
+      ? `<img src="${d.imgKtp}" class="popup-doc-img" alt="KTP" onclick="window.open(this.src)" style="cursor:zoom-in"/>`
+      : `<div class="popup-doc-empty"><span>🪪</span><span>Belum Ter-upload</span></div>`;
+    document.getElementById('kvm-kk-wrap').innerHTML = d.imgKk
+      ? `<img src="${d.imgKk}" class="popup-doc-img" alt="KK" onclick="window.open(this.src)" style="cursor:zoom-in"/>`
+      : `<div class="popup-doc-empty"><span>👨‍👩‍👧</span><span>Belum Ter-upload</span></div>`;
+  } else {
+    docSec.style.display = 'none';
+  }
 
-        let actions = "";
-        const actionWrapper = document.getElementById("kvm-actions");
-        if (isAdmin) {
-          actionWrapper.className = "popup-actions two-cols";
-          actions += `<button onclick="closeModal('kavlingModal');openAdminModal('${d.id}')" style="padding:.6rem;background:var(--moss);color:white;border:none;border-radius:6px;font-size:.8rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif">✏️ Edit Data Properti</button>`;
-          actions += `<button onclick="closeModal('kavlingModal');exportKavlingPdf('${d.id}')" style="padding:.6rem;background:rgba(201,150,58,.2);color:var(--gold);border:1px solid rgba(201,150,58,.4);border-radius:6px;font-size:.8rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif">📄 Export Cetak SPR</button>`;
-        } else {
-          actionWrapper.className = "popup-actions";
-          actions += `<button onclick="closeModal('kavlingModal')" style="padding:.6rem;background:rgba(255,255,255,.1);color:white;border:none;border-radius:6px;font-size:.8rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif">Tutup Jendela Detail</button>`;
-        }
-        actionWrapper.innerHTML = actions;
-        document.getElementById("kavlingModal").classList.add("open");
-      }
+  let actions = '';
+  const actionWrapper = document.getElementById('kvm-actions');
+  if(isAdmin){
+    actionWrapper.className = 'popup-actions two-cols';
+    actions += `<button onclick="closeModal('kavlingModal');openAdminModal('${d.id}')" style="padding:.6rem;background:var(--moss);color:white;border:none;border-radius:6px;font-size:.8rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif">✏️ Edit Data Properti</button>`;
+    actions += `<button onclick="closeModal('kavlingModal');exportKavlingPdf('${d.id}')" style="padding:.6rem;background:rgba(201,150,58,.2);color:var(--gold);border:1px solid rgba(201,150,58,.4);border-radius:6px;font-size:.8rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif">📄 Export Cetak SPR</button>`;
+  } else {
+    actionWrapper.className = 'popup-actions';
+    actions += `<button onclick="closeModal('kavlingModal')" style="padding:.6rem;background:rgba(255,255,255,.1);color:white;border:none;border-radius:6px;font-size:.8rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif">Tutup Jendela Detail</button>`;
+  }
+  actionWrapper.innerHTML = actions;
+  document.getElementById('kavlingModal').classList.add('open');
+}
 
-      // ── AUTENTIKASI ADMIN SYSTEM ──
-      function openLoginModal() {
-        document.getElementById("loginModal").classList.add("open");
-      }
-      function closeModal(id) {
-        document.getElementById(id).classList.remove("open");
-      }
-      function closeOnBdrop(e, id) {
-        if (e.target.id === id) closeModal(id);
-      }
+// ── AUTENTIKASI ADMIN SYSTEM ──
+function openLoginModal(){document.getElementById('loginModal').classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+function closeOnBdrop(e,id){if(e.target.id===id)closeModal(id);}
 
-      function doLogin() {
-        const u = document.getElementById("loginUser").value.trim();
-        const p = document.getElementById("loginPass").value.trim();
-        if (u === "admin" && p === "admin123") {
-          isAdmin = true;
-          closeModal("loginModal");
-          document.getElementById("adminBar").classList.add("visible");
-          document.getElementById("canvas").classList.add("with-admin");
-          document.getElementById("btnLogin").style.display = "none";
-          document.getElementById("btnLogout").style.display = "";
-          document.getElementById("navUser").style.display = "";
-          if (currentCluster)
-            document.getElementById("btnExport").style.display = "flex";
-          showToast(
-            "Login berhasil! Mode Manajemen Konstruksi aktif.",
-            "success",
-          );
-        } else {
-          showToast("Akses ditolak! Kombinasi salah.", "error");
-        }
-      }
+function doLogin(){
+  const u = document.getElementById('loginUser').value.trim();
+  const p = document.getElementById('loginPass').value.trim();
+  if(u === 'admin' && p === 'admin123'){
+    isAdmin = true;
+    closeModal('loginModal');
+    document.getElementById('adminBar').classList.add('visible');
+    document.getElementById('canvas').classList.add('with-admin');
+    document.getElementById('btnLogin').style.display = 'none';
+    document.getElementById('btnLogout').style.display = '';
+    document.getElementById('navUser').style.display = '';
+    if(currentCluster) document.getElementById('btnExport').style.display = 'flex';
+    showToast('Login berhasil! Mode Manajemen Konstruksi aktif.','success');
+  } else {
+    showToast('Akses ditolak! Kombinasi salah.','error');
+  }
+}
 
-      function doLogout() {
-        isAdmin = false;
-        document.getElementById("adminBar").classList.remove("visible");
-        document.getElementById("canvas").classList.remove("with-admin");
-        document.getElementById("btnLogin").style.display = "";
-        document.getElementById("btnLogout").style.display = "none";
-        document.getElementById("navUser").style.display = "none";
-        document.getElementById("btnExport").style.display = "none";
-        showToast("Sesi kerja admin diakhiri.", "success");
-      }
+function doLogout(){
+  isAdmin = false;
+  document.getElementById('adminBar').classList.remove('visible');
+  document.getElementById('canvas').classList.remove('with-admin');
+  document.getElementById('btnLogin').style.display = '';
+  document.getElementById('btnLogout').style.display = 'none';
+  document.getElementById('navUser').style.display = 'none';
+  document.getElementById('btnExport').style.display = 'none';
+  showToast('Sesi kerja admin diakhiri.','success');
+}
 
-      function openAdminModal(id) {
-        const d = CLUSTERS[currentCluster].kavling[id];
-        document.getElementById("adminModalTitle").textContent =
-          "Manajemen Properti " + id;
-        document.getElementById("adminModalSub").textContent =
-          `Blok ${d.blok} · Luas ${d.luas} m²`;
-        document.getElementById("f-id").value = id;
-        document.getElementById("f-status").value = d.status;
-        document.getElementById("f-luas").value = d.luas;
-        document.getElementById("f-harga").value = d.harga;
-        document.getElementById("f-tipe").value = d.tipe || "";
-        document.getElementById("f-nama").value = d.nama || "";
-        document.getElementById("f-alamat").value = d.alamat || "";
-        document.getElementById("f-noktp").value = d.noktp || "";
-        document.getElementById("f-hp").value = d.hp || "";
-        document.getElementById("f-nospr").value = d.nospr || "";
-        document.getElementById("f-metode").value = d.metode || "";
-        document.getElementById("f-jumlah").value = d.jumlah || "";
-        document.getElementById("f-dp").value = d.dp || "";
-        document.getElementById("f-kelebihan").value = d.kelebihan || "";
-        document.getElementById("f-discount").value = d.discount || "";
-        document.getElementById("f-mutu").value = d.mutu || "";
-        document.getElementById("f-tanggal").value = d.tanggal || "";
-        document.getElementById("f-catatan").value = d.catatan || "";
+function openAdminModal(id) {
+  const d = CLUSTERS[currentCluster].kavling[id];
+  document.getElementById('adminModalTitle').textContent = 'Manajemen Properti ' + id;
+  document.getElementById('adminModalSub').textContent = `Blok ${d.blok} · Luas ${d.luas} m²`;
+  document.getElementById('f-id').value = id;
+  document.getElementById('f-status').value = d.status;
+  document.getElementById('f-luas').value = d.luas;
+  document.getElementById('f-harga').value = d.harga;
+  document.getElementById('f-tipe').value = d.tipe || '';
+  document.getElementById('f-nama').value = d.nama || '';
+  document.getElementById('f-alamat').value = d.alamat || '';
+  document.getElementById('f-noktp').value = d.noktp || '';
+  document.getElementById('f-hp').value = d.hp || '';
+  document.getElementById('f-nospr').value = d.nospr || '';
+  document.getElementById('f-metode').value = d.metode || '';
+  document.getElementById('f-jumlah').value = d.jumlah || '';
+  document.getElementById('f-dp').value = d.dp || '';
+  document.getElementById('f-kelebihan').value = d.kelebihan || '';
+  document.getElementById('f-discount').value = d.discount || '';
+  document.getElementById('f-mutu').value = d.mutu || '';
+  document.getElementById('f-tanggal').value = d.tanggal || '';
+  document.getElementById('f-catatan').value = d.catatan || '';
+  
+  window['_tmp_img_ktp'] = d.imgKtp || '';
+  window['_tmp_img_kk'] = d.imgKk || '';
+  if(d.imgKtp){
+    document.getElementById('img-ktp').src = d.imgKtp;
+    document.getElementById('prev-ktp').style.display = 'block';
+    document.getElementById('clear-ktp').style.display = 'block';
+    document.getElementById('name-ktp').textContent = 'Arsip KTP Valid';
+  } else {
+    document.getElementById('prev-ktp').style.display = 'none';
+    document.getElementById('clear-ktp').style.display = 'none';
+    document.getElementById('img-ktp').src = '';
+  }
+  if(d.imgKk){
+    document.getElementById('img-kk').src = d.imgKk;
+    document.getElementById('prev-kk').style.display = 'block';
+    document.getElementById('clear-kk').style.display = 'block';
+    document.getElementById('name-kk').textContent = 'Arsip KK Valid';
+  } else {
+    document.getElementById('prev-kk').style.display = 'none';
+    document.getElementById('clear-kk').style.display = 'none';
+    document.getElementById('img-kk').src = '';
+  }
+  document.getElementById('adminModal').classList.add('open');
+}
 
-        window["_tmp_img_ktp"] = d.imgKtp || "";
-        window["_tmp_img_kk"] = d.imgKk || "";
-        if (d.imgKtp) {
-          document.getElementById("img-ktp").src = d.imgKtp;
-          document.getElementById("prev-ktp").style.display = "block";
-          document.getElementById("clear-ktp").style.display = "block";
-          document.getElementById("name-ktp").textContent = "Arsip KTP Valid";
-        } else {
-          document.getElementById("prev-ktp").style.display = "none";
-          document.getElementById("clear-ktp").style.display = "none";
-          document.getElementById("img-ktp").src = "";
-        }
-        if (d.imgKk) {
-          document.getElementById("img-kk").src = d.imgKk;
-          document.getElementById("prev-kk").style.display = "block";
-          document.getElementById("clear-kk").style.display = "block";
-          document.getElementById("name-kk").textContent = "Arsip KK Valid";
-        } else {
-          document.getElementById("prev-kk").style.display = "none";
-          document.getElementById("clear-kk").style.display = "none";
-          document.getElementById("img-kk").src = "";
-        }
-        document.getElementById("adminModal").classList.add("open");
-      }
+function saveKavling(){
+  const id = document.getElementById('f-id').value;
+  const d = CLUSTERS[currentCluster].kavling[id];
+  d.status = document.getElementById('f-status').value;
+  d.luas = parseInt(document.getElementById('f-luas').value) || d.luas;
+  d.harga = parseInt(document.getElementById('f-harga').value) || d.harga;
+  d.tipe = document.getElementById('f-tipe').value;
+  d.nama = document.getElementById('f-nama').value.trim();
+  d.alamat = document.getElementById('f-alamat').value.trim();
+  d.noktp = document.getElementById('f-noktp').value.trim();
+  d.hp = document.getElementById('f-hp').value.trim();
+  d.nospr = document.getElementById('f-nospr').value.trim();
+  d.metode = document.getElementById('f-metode').value;
+  d.jumlah = parseInt(document.getElementById('f-jumlah').value) || 0;
+  d.dp = parseInt(document.getElementById('f-dp').value) || 0;
+  d.kelebihan = parseInt(document.getElementById('f-kelebihan').value) || 0;
+  d.discount = parseInt(document.getElementById('f-discount').value) || 0;
+  d.mutu = parseInt(document.getElementById('f-mutu').value) || 0;
+  d.tanggal = document.getElementById('f-tanggal').value;
+  d.catatan = document.getElementById('f-catatan').value.trim();
+  
+  if(window['_tmp_img_ktp'] !== undefined) d.imgKtp = window['_tmp_img_ktp'] || d.imgKtp;
+  if(window['_tmp_img_kk'] !== undefined) d.imgKk = window['_tmp_img_kk'] || d.imgKk;
+  
+  closeModal('adminModal');
+  renderStatsStrip(currentCluster);
+  renderClusterKavlingLayer(currentCluster); // Me-refresh render status warna kotak kaveling
+  showToast(`Database Unit ${id} Berhasil Diperbarui!`,'success');
+}
 
-      function saveKavling() {
-        const id = document.getElementById("f-id").value;
-        const d = CLUSTERS[currentCluster].kavling[id];
-        d.status = document.getElementById("f-status").value;
-        d.luas = parseInt(document.getElementById("f-luas").value) || d.luas;
-        d.harga = parseInt(document.getElementById("f-harga").value) || d.harga;
-        d.tipe = document.getElementById("f-tipe").value;
-        d.nama = document.getElementById("f-nama").value.trim();
-        d.alamat = document.getElementById("f-alamat").value.trim();
-        d.noktp = document.getElementById("f-noktp").value.trim();
-        d.hp = document.getElementById("f-hp").value.trim();
-        d.nospr = document.getElementById("f-nospr").value.trim();
-        d.metode = document.getElementById("f-metode").value;
-        d.jumlah = parseInt(document.getElementById("f-jumlah").value) || 0;
-        d.dp = parseInt(document.getElementById("f-dp").value) || 0;
-        d.kelebihan =
-          parseInt(document.getElementById("f-kelebihan").value) || 0;
-        d.discount = parseInt(document.getElementById("f-discount").value) || 0;
-        d.mutu = parseInt(document.getElementById("f-mutu").value) || 0;
-        d.tanggal = document.getElementById("f-tanggal").value;
-        d.catatan = document.getElementById("f-catatan").value.trim();
+function fmtRp(n){if(!n)return'—'; return'Rp ' + n.toLocaleString('id-ID');}
+function fmtDate(s){if(!s)return'—'; return new Date(s).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});}
+function showToast(msg,type='success'){const t=document.getElementById('toast'); t.textContent=msg; t.className='toast '+type; setTimeout(()=>t.classList.add('show'),10); setTimeout(()=>t.classList.remove('show'),3500);}
 
-        if (window["_tmp_img_ktp"] !== undefined)
-          d.imgKtp = window["_tmp_img_ktp"] || d.imgKtp;
-        if (window["_tmp_img_kk"] !== undefined)
-          d.imgKk = window["_tmp_img_kk"] || d.imgKk;
+// ══════════════════════════════════════════
+// EXPORT PDF — KAVLING INDIVIDUAL (SPR FORMAT)
+// ══════════════════════════════════════════
+function exportKavlingPdf(id) {
+  const { jsPDF } = window.jspdf;
+  const d = CLUSTERS[currentCluster].kavling[id];
+  const cl = CLUSTERS[currentCluster];
+  
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: [215, 330] });
+  const pw = doc.internal.pageSize.getWidth();
+  const ph = doc.internal.pageSize.getHeight();
 
-        closeModal("adminModal");
-        renderStatsStrip(currentCluster);
-        renderClusterKavlingLayer(currentCluster); // Me-refresh render status warna kotak kaveling
-        showToast(`Database Unit ${id} Berhasil Diperbarui!`, "success");
-      }
+  doc.setDrawColor(0, 0, 0); doc.setLineWidth(0.5);
+  doc.rect(12, 12, pw - 24, ph - 24);
 
-      function fmtRp(n) {
-        if (!n) return "—";
-        return "Rp " + n.toLocaleString("id-ID");
-      }
-      function fmtDate(s) {
-        if (!s) return "—";
-        return new Date(s).toLocaleDateString("id-ID", {
-          day: "numeric",
-          month: "long",
-          year: "numeric",
-        });
-      }
-      function showToast(msg, type = "success") {
-        const t = document.getElementById("toast");
-        t.textContent = msg;
-        t.className = "toast " + type;
-        setTimeout(() => t.classList.add("show"), 10);
-        setTimeout(() => t.classList.remove("show"), 3500);
-      }
+  doc.setFillColor(255, 255, 255);
+  doc.rect(45, 16, pw - 90, 16, 'FD');
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(13); doc.setTextColor(0, 0, 0);
+  doc.text('SURAT PESANAN RUMAH', pw / 2, 24, { align: 'center' });
+  
+  const sprNo = d.nospr || '............/AMM/....../20..';
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(9.5);
+  doc.text(`NO : ${sprNo}`, pw / 2, 29, { align: 'center' });
 
-      // ══════════════════════════════════════════
-      // EXPORT PDF — KAVLING INDIVIDUAL (SPR FORMAT)
-      // ══════════════════════════════════════════
-      function exportKavlingPdf(id) {
-        const { jsPDF } = window.jspdf;
-        const d = CLUSTERS[currentCluster].kavling[id];
-        const cl = CLUSTERS[currentCluster];
+  let y = 44;
+  const lx = 18, cx = 70, rx = pw - 18;
+  
+  function field(label, value, yy) {
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(9.5); doc.setTextColor(0, 0, 0);
+    doc.text(label, lx, yy);
+    doc.text(':', cx - 4, yy);
+    doc.line(cx, yy + 0.5, rx, yy + 0.5);
+    if (value) {
+      doc.setFont('helvetica', 'normal');
+      const splitText = doc.splitTextToSize(String(value), rx - cx - 2);
+      doc.text(splitText, cx + 1, yy - 0.5);
+    }
+  }
 
-        const doc = new jsPDF({
-          orientation: "portrait",
-          unit: "mm",
-          format: [215, 330],
-        });
-        const pw = doc.internal.pageSize.getWidth();
-        const ph = doc.internal.pageSize.getHeight();
+  field('Nama Pemohon', d.nama || '', y);          y += 8;
+  field('Alamat Lengkap', d.alamat || '', y);      y += 8;
+  field('No. KTP / SIM', d.noktp || '', y);        y += 8;
+  field('No. Telp / HP', d.hp || '', y);          y += 8;
+  field('Cluster', cl.name, y);                    y += 8;
+  field('Blok / No. Kavling', `${d.blok} / ${d.id}`, y); y += 8;
+  field('Type / Luas Tanah', `${d.tipe || '—'} / ${d.luas} m²`, y); y += 11;
 
-        doc.setDrawColor(0, 0, 0);
-        doc.setLineWidth(0.5);
-        doc.rect(12, 12, pw - 24, ph - 24);
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(9.5);
+  doc.text('Dengan perincian harga sebagai berikut :', lx, y); y += 6;
 
-        doc.setFillColor(255, 255, 255);
-        doc.rect(45, 16, pw - 90, 16, "FD");
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(13);
-        doc.setTextColor(0, 0, 0);
-        doc.text("SURAT PESANAN RUMAH", pw / 2, 24, { align: "center" });
+  function fieldRight(label, value, yy) {
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(9.5); doc.setTextColor(0, 0, 0);
+    doc.text(label, lx, yy);
+    doc.text(':', 105, yy);
+    doc.line(108, yy + 0.5, rx, yy + 0.5);
+    if (value) { doc.text(value, 110, yy - 0.5); }
+  }
+  
+  const hargaStd = d.harga ? fmtRp(d.harga) : '';
+  const totalJual = d.jumlah ? fmtRp(d.jumlah) : '';
+  const dp = d.dp ? fmtRp(d.dp) : '';
+  const kelebihan = d.kelebihan ? fmtRp(d.kelebihan) : '';
+  const penambahan = d.mutu ? fmtRp(d.mutu) : '';
+  const discount = d.discount ? fmtRp(d.discount) : '';
+  const metodeTeks = d.metode === 'Cash' ? 'TUNAI' : d.metode === 'KPR' ? 'KPR' : d.metode === 'Cash Tempo' ? 'TUNAI BERTAHAP' : '';
 
-        const sprNo = d.nospr || "............/AMM/....../20..";
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(9.5);
-        doc.text(`NO : ${sprNo}`, pw / 2, 29, { align: "center" });
+  fieldRight('Harga Standar', hargaStd, y);          y += 7.5;
+  fieldRight('Kelebihan Tanah (jika ada)', kelebihan, y); y += 7.5;
+  fieldRight('Penambahan Mutu Bangunan', penambahan, y);  y += 7.5;
+  fieldRight('Potongan Harga / Discount', discount, y);    y += 7.5;
+  fieldRight('Total Harga Jual Kesepakatan', totalJual, y); y += 7.5;
+  fieldRight('Uang Muka / Down Payment (DP)', dp, y);       y += 7.5;
+  fieldRight('Sistem Pembayaran (KPR/TUNAI/BERTAHAP)', metodeTeks, y); y += 11;
 
-        let y = 44;
-        const lx = 18,
-          cx = 70,
-          rx = pw - 18;
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(9.5);
+  doc.text('Cara pembayaran yang telah disetujui :', lx, y); y += 5;
 
-        function field(label, value, yy) {
-          doc.setFont("helvetica", "bold");
-          doc.setFontSize(9.5);
-          doc.setTextColor(0, 0, 0);
-          doc.text(label, lx, yy);
-          doc.text(":", cx - 4, yy);
-          doc.line(cx, yy + 0.5, rx, yy + 0.5);
-          if (value) {
-            doc.setFont("helvetica", "normal");
-            const splitText = doc.splitTextToSize(String(value), rx - cx - 2);
-            doc.text(splitText, cx + 1, yy - 0.5);
-          }
-        }
+  const tbl = { x: lx, w: pw - (lx * 2) };
+  const cols = [15, 64, 45, 55]; 
+  const colX = [tbl.x, tbl.x + cols[0], tbl.x + cols[0] + cols[1], tbl.x + cols[0] + cols[1] + cols[2]];
+  const heads = ['NO.', 'URAIAN PEMBAYARAN', 'Rencana Tanggal Bayar', 'JUMLAH NOMINAL'];
+  
+  doc.setFillColor(242, 242, 242);
+  doc.rect(tbl.x, y, tbl.w, 7, 'FD');
+  
+  heads.forEach((h, i) => {
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(8.5); doc.setTextColor(0);
+    doc.text(h, colX[i] + cols[i] / 2, y + 4.8, { align: 'center' });
+  });
+  y += 7;
 
-        field("Nama Pemohon", d.nama || "", y);
-        y += 8;
-        field("Alamat Lengkap", d.alamat || "", y);
-        y += 8;
-        field("No. KTP / SIM", d.noktp || "", y);
-        y += 8;
-        field("No. Telp / HP", d.hp || "", y);
-        y += 8;
-        field("Cluster", cl.name, y);
-        y += 8;
-        field("Blok / No. Kavling", `${d.blok} / ${d.id}`, y);
-        y += 8;
-        field("Type / Luas Tanah", `${d.tipe || "—"} / ${d.luas} m²`, y);
-        y += 11;
+  const rowH = 7.5;
+  for (let r = 0; r < 7; r++) {
+    doc.setDrawColor(0); doc.setLineWidth(0.25);
+    doc.rect(tbl.x, y, tbl.w, rowH);
+    let cx2 = tbl.x + cols[0];
+    for (let i = 0; i < 3; i++) {
+      doc.line(cx2, y, cx2, y + rowH);
+      cx2 += cols[i + 1];
+    }
+    if (r === 0 && d.dp) {
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); doc.setTextColor(0);
+      doc.text('1', colX[0] + cols[0] / 2, y + 4.8, { align: 'center' });
+      doc.text('Pembayaran Uang Muka (DP)', colX[1] + 2, y + 4.8);
+      if (d.tanggal) doc.text(fmtDate(d.tanggal), colX[2] + 2, y + 4.8);
+      doc.text(fmtRp(d.dp), colX[3] + 2, y + 4.8);
+    }
+    y += rowH;
+  }
+  y += 6;
 
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(9.5);
-        doc.text("Dengan perincian harga sebagai berikut :", lx, y);
-        y += 6;
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); doc.setTextColor(0);
+  const notes = [
+    'Catatan Penting :',
+    '- Pemohon bersedia menambah nilai Uang Muka secara mandiri apabila nilai plafon KPR yang disetujui Bank berbeda.',
+    '- Ketentuan suku bunga berjalan beserta nilai angsuran mutlak menjadi wewenang penuh lembaga Perbankan penyedia KPR.',
+    '- Penyesuaian luas tanah aktual akan dihitung kembali saat sertifikat pecah terbit mengacu pada harga kesepakatan awal.',
+    '- Akumulasi total harga jual di atas belum termasuk komponen biaya pajak properti (BPHTB) serta biaya administrasi KPR.',
+    '- Segala bentuk transaksi resmi wajib ditransfer hanya ke rekening operasional perusahaan PT / Developer yang ditunjuk.'
+  ];
+  
+  notes.forEach((n, i) => {
+    doc.text(n, lx, y);
+    y += (i === 0) ? 4.5 : 4.0;
+  });
 
-        function fieldRight(label, value, yy) {
-          doc.setFont("helvetica", "normal");
-          doc.setFontSize(9.5);
-          doc.setTextColor(0, 0, 0);
-          doc.text(label, lx, yy);
-          doc.text(":", 105, yy);
-          doc.line(108, yy + 0.5, rx, yy + 0.5);
-          if (value) {
-            doc.text(value, 110, yy - 0.5);
-          }
-        }
+  const sigY = ph - 56;
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(9.5);
+  doc.text('Mengetahui / Menyetujui,', lx, sigY);
+  
+  const malangDate = `Malang, ${d.tanggal ? fmtDate(d.tanggal) : '.............................. 20 ......'}`;
+  doc.text(malangDate, pw / 2 + 12, sigY);
 
-        const hargaStd = d.harga ? fmtRp(d.harga) : "";
-        const totalJual = d.jumlah ? fmtRp(d.jumlah) : "";
-        const dp = d.dp ? fmtRp(d.dp) : "";
-        const kelebihan = d.kelebihan ? fmtRp(d.kelebihan) : "";
-        const penambahan = d.mutu ? fmtRp(d.mutu) : "";
-        const discount = d.discount ? fmtRp(d.discount) : "";
-        const metodeTeks =
-          d.metode === "Cash"
-            ? "TUNAI"
-            : d.metode === "KPR"
-              ? "KPR"
-              : d.metode === "Cash Tempo"
-                ? "TUNAI BERTAHAP"
-                : "";
+  const sig4x = [lx + 5, lx + 45, pw / 2 + 12, pw / 2 + 54];
+  const sig4 = [['Manajer Keuangan'], ['Manajer Marketing'], ['Sales Advisor'], ['Pemesan / Pembeli']];
+  
+  sig4.forEach((s, i) => {
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5);
+    doc.text(s[0], sig4x[i], sigY + 24);
+    doc.line(sig4x[i] - 3, sigY + 21, sig4x[i] + 32, sigY + 21);
+  });
 
-        fieldRight("Harga Standar", hargaStd, y);
-        y += 7.5;
-        fieldRight("Kelebihan Tanah (jika ada)", kelebihan, y);
-        y += 7.5;
-        fieldRight("Penambahan Mutu Bangunan", penambahan, y);
-        y += 7.5;
-        fieldRight("Potongan Harga / Discount", discount, y);
-        y += 7.5;
-        fieldRight("Total Harga Jual Kesepakatan", totalJual, y);
-        y += 7.5;
-        fieldRight("Uang Muka / Down Payment (DP)", dp, y);
-        y += 7.5;
-        fieldRight("Sistem Pembayaran (KPR/TUNAI/BERTAHAP)", metodeTeks, y);
-        y += 11;
+  // PAGE 2 : LAMPIRAN DOKUMEN
+  doc.addPage();
+  doc.setFillColor(15, 37, 24); doc.rect(0, 0, pw, 26, 'F');
+  doc.setFillColor(201, 150, 58); doc.rect(0, 26, pw, 1.5, 'F');
+  
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(13); doc.setTextColor(255, 255, 255);
+  doc.text('VILLA BUKIT TIDAR', 14, 10);
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(220, 205, 170);
+  doc.text('DOKUMEN LAMPIRAN PENDUKUNG (VALIDASI DATA)', 14, 16);
+  
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(255, 255, 255);
+  doc.text(`Kavling ${id} · ${cl.name}`, pw - 14, 10, { align: 'right' });
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(220, 205, 170);
+  doc.text(`No. SPR: ${d.nospr || '—'}`, pw - 14, 16, { align: 'right' });
 
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(9.5);
-        doc.text("Cara pembayaran yang telah disetujui :", lx, y);
-        y += 5;
+  let py = 36;
+  doc.setFillColor(30, 60, 40); doc.roundedRect(14, py, pw - 28, 10, 1.5, 1.5, 'F');
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(201, 150, 58);
+  doc.text('FOTO KTP PEMOHON UTAMA', 20, py + 6.5);
+  py += 15;
+  
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(50, 50, 50);
+  doc.text(`Nama Tertera : ${d.nama || '—'}`, 14, py);
+  doc.text(`Nomor NIK    : ${d.noktp || '—'}`, 14, py + 5);
+  py += 12;
 
-        const tbl = { x: lx, w: pw - lx * 2 };
-        const cols = [15, 64, 45, 55];
-        const colX = [
-          tbl.x,
-          tbl.x + cols[0],
-          tbl.x + cols[0] + cols[1],
-          tbl.x + cols[0] + cols[1] + cols[2],
-        ];
-        const heads = [
-          "NO.",
-          "URAIAN PEMBAYARAN",
-          "Rencana Tanggal Bayar",
-          "JUMLAH NOMINAL",
-        ];
+  if (d.imgKtp) {
+    try {
+      const imgW = pw - 28, imgH = 110; 
+      doc.addImage(d.imgKtp, 'JPEG', 14, py, imgW, imgH);
+      py += imgH + 10;
+    } catch (e) {
+      doc.setFillColor(245, 245, 245); doc.rect(14, py, pw - 28, 80, 'F');
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(9.5); doc.setTextColor(120);
+      doc.text('[ Gagal memuat file format gambar KTP ]', pw / 2, py + 40, { align: 'center' });
+      py += 90;
+    }
+  } else {
+    doc.setFillColor(245, 245, 245); doc.rect(14, py, pw - 28, 60, 'F');
+    doc.setDrawColor(200); doc.setLineWidth(0.3); doc.rect(14, py, pw - 28, 60);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(9.5); doc.setTextColor(150);
+    doc.text('[ Berkas Foto KTP Belum Diupload Admin ]', pw / 2, py + 30, { align: 'center' });
+    py += 70;
+  }
 
-        doc.setFillColor(242, 242, 242);
-        doc.rect(tbl.x, y, tbl.w, 7, "FD");
+  if (py > 190) { doc.addPage(); py = 32; } else { py += 5; }
 
-        heads.forEach((h, i) => {
-          doc.setFont("helvetica", "bold");
-          doc.setFontSize(8.5);
-          doc.setTextColor(0);
-          doc.text(h, colX[i] + cols[i] / 2, y + 4.8, { align: "center" });
-        });
-        y += 7;
+  doc.setFillColor(30, 60, 40); doc.roundedRect(14, py, pw - 28, 10, 1.5, 1.5, 'F');
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(201, 150, 58);
+  doc.text('FOTO KARTU KELUARGA (KK)', 20, py + 6.5);
+  py += 15;
+  
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(50, 50, 50);
+  doc.text(`Kepala Keluarga : ${d.nama || '—'}`, 14, py);
+  py += 10;
 
-        const rowH = 7.5;
-        for (let r = 0; r < 7; r++) {
-          doc.setDrawColor(0);
-          doc.setLineWidth(0.25);
-          doc.rect(tbl.x, y, tbl.w, rowH);
-          let cx2 = tbl.x + cols[0];
-          for (let i = 0; i < 3; i++) {
-            doc.line(cx2, y, cx2, y + rowH);
-            cx2 += cols[i + 1];
-          }
-          if (r === 0 && d.dp) {
-            doc.setFont("helvetica", "normal");
-            doc.setFontSize(8.5);
-            doc.setTextColor(0);
-            doc.text("1", colX[0] + cols[0] / 2, y + 4.8, { align: "center" });
-            doc.text("Pembayaran Uang Muka (DP)", colX[1] + 2, y + 4.8);
-            if (d.tanggal) doc.text(fmtDate(d.tanggal), colX[2] + 2, y + 4.8);
-            doc.text(fmtRp(d.dp), colX[3] + 2, y + 4.8);
-          }
-          y += rowH;
-        }
-        y += 6;
+  if (d.imgKk) {
+    try {
+      const imgW2 = pw - 28, imgH2 = 110;
+      doc.addImage(d.imgKk, 'JPEG', 14, py, imgW2, imgH2);
+    } catch (e) {
+      doc.setFillColor(245, 245, 245); doc.rect(14, py, pw - 28, 80, 'F');
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(9.5); doc.setTextColor(120);
+      doc.text('[ Gagal memuat file format gambar KK ]', pw / 2, py + 40, { align: 'center' });
+    }
+  } else {
+    doc.setFillColor(245, 245, 245); doc.rect(14, py, pw - 28, 60, 'F');
+    doc.setDrawColor(200); doc.setLineWidth(0.3); doc.rect(14, py, pw - 28, 60);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(9.5); doc.setTextColor(150);
+    doc.text('[ Berkas Foto Kartu Keluarga Belum Diupload Admin ]', pw / 2, py + 30, { align: 'center' });
+  }
 
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(8.5);
-        doc.setTextColor(0);
-        const notes = [
-          "Catatan Penting :",
-          "- Pemohon bersedia menambah nilai Uang Muka secara mandiri apabila nilai plafon KPR yang disetujui Bank berbeda.",
-          "- Ketentuan suku bunga berjalan beserta nilai angsuran mutlak menjadi wewenang penuh lembaga Perbankan penyedia KPR.",
-          "- Penyesuaian luas tanah aktual akan dihitung kembali saat sertifikat pecah terbit mengacu pada harga kesepakatan awal.",
-          "- Akumulasi total harga jual di atas belum termasuk komponen biaya pajak properti (BPHTB) serta biaya administrasi KPR.",
-          "- Segala bentuk transaksi resmi wajib ditransfer hanya ke rekening operasional perusahaan PT / Developer yang ditunjuk.",
-        ];
+  const totalPg = doc.internal.getNumberOfPages();
+  for (let i = 1; i <= totalPg; i++) {
+    if (i > 1) { 
+      doc.setPage(i);
+      const pph = doc.internal.pageSize.getHeight();
+      doc.setFillColor(235, 230, 215); doc.rect(0, pph - 8, pw, 8, 'F');
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(110);
+      doc.text(`Dicetak: ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })} · Sistem Informasi Villa Bukit Tidar`, 14, pph - 3);
+      doc.text(`Halaman ${i} dari ${totalPg}`, pw - 14, pph - 3, { align: 'right' });
+    }
+  }
 
-        notes.forEach((n, i) => {
-          doc.text(n, lx, y);
-          y += i === 0 ? 4.5 : 4.0;
-        });
+  doc.save(`SPR_${id}_${(d.nama || 'KOSONG').replace(/ /g, '_')}.pdf`);
+  showToast('Dokumen SPR ukuran F4 berhasil diunduh!', 'success');
+}
 
-        const sigY = ph - 56;
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(9.5);
-        doc.text("Mengetahui / Menyetujui,", lx, sigY);
+// ── EXPORT REKAP PDF ──
+function exportCurrentPdf() {
+  if (!currentCluster) return;
+  const { jsPDF } = window.jspdf;
+  const cl = CLUSTERS[currentCluster];
+  const all = Object.values(cl.kavling);
+  
+  const doc = new jsPDF({ orientation: 'l', unit: 'mm', format: 'a4' });
+  const pw = doc.internal.pageSize.getWidth();
+  const ph = doc.internal.pageSize.getHeight();
+  
+  const counts = { available: 0, booked: 0, sold: 0 };
+  all.forEach(d => counts[d.status]++);
+  
+  doc.setFillColor(15, 37, 24); doc.rect(0, 0, pw, 24, 'F');
+  doc.setFillColor(201, 150, 58); doc.rect(0, 24, pw, 1.5, 'F');
+  
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(13); doc.setTextColor(255, 255, 255);
+  doc.text('VILLA BUKIT TIDAR', 14, 10);
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(220, 205, 170);
+  doc.text('REKAPITULASI DATA PROPERTI REAL-TIME', 14, 15);
+  
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(255, 255, 255);
+  doc.text(cl.name.toUpperCase(), pw - 14, 11, { align: 'right' });
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(220, 205, 170);
+  doc.text('LAPORAN STATUS PENJUALAN UNIT CLUSTER', pw - 14, 16, { align: 'right' });
+  
+  let y = 32;
+  const bw = (pw - 28 - 9) / 3;
+  
+  [{ l: 'UNIT TERSEDIA (AVAILABLE)', v: counts.available, c: [45, 130, 90] },
+   { l: 'UNIT DIPESAN (BOOKED)', v: counts.booked, c: [180, 115, 30] },
+   { l: 'UNIT TERJUAL (SOLD)', v: counts.sold, c: [150, 40, 40] }].forEach((b, i) => {
+    const bx = 14 + i * (bw + 4.5);
+    doc.setFillColor(...b.c); doc.roundedRect(bx, y, bw, 13, 1.5, 1.5, 'F');
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(13); doc.setTextColor(255, 255, 255);
+    doc.text(String(b.v), bx + bw / 2, y + 6, { align: 'center' });
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(7);
+    doc.text(b.l, bx + bw / 2, y + 10.5, { align: 'center' });
+  });
+  
+  y += 19;
+  
+  const rows = all.sort((a, b) => a.id.localeCompare(b.id, undefined, { numeric: true, sensitivity: 'base' })).map(d => [
+    d.id, `Blok ${d.blok}`, d.tipe || '—', d.luas + ' m²', fmtRp(d.harga),
+    { content: SL[d.status], styles: { fillColor: d.status === 'available' ? [45, 130, 90] : d.status === 'booked' ? [180, 115, 30] : [150, 40, 40], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center', fontSize: 6.5 } },
+    d.nama || '—', d.nospr || '—', d.metode || '—', d.tanggal ? fmtDate(d.tanggal) : '—'
+  ]);
+  
+  doc.autoTable({
+    startY: y,
+    head: [['Unit', 'Blok', 'Tipe', 'Luas', 'Harga Standar', 'Status', 'Nama Pembeli', 'No. SPR', 'Metode', 'Tgl. Akad']],
+    body: rows,
+    theme: 'grid',
+    styles: { fontSize: 6.8, cellPadding: 1.5, valign: 'middle' },
+    headStyles: { fillColor: [15, 37, 24], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 7.2 },
+    alternateRowStyles: { fillColor: [248, 246, 240] },
+    columnStyles: { 
+      0: { cellWidth: 12, fontStyle: 'bold' }, 
+      1: { cellWidth: 14 },
+      2: { cellWidth: 18 },
+      3: { halign: 'right', cellWidth: 16 }, 
+      4: { halign: 'right', cellWidth: 26 }, 
+      5: { cellWidth: 18 },
+      6: { cellWidth: 35 }, 
+      8: { cellWidth: 20 },
+      9: { cellWidth: 24 }
+    },
+    margin: { left: 14, right: 14 },
+    tableWidth: 'auto'
+  });
+  
+  const pages = doc.internal.getNumberOfPages();
+  for (let i = 1; i <= pages; i++) {
+    doc.setPage(i);
+    doc.setFillColor(232, 223, 200); doc.rect(0, ph - 8, pw, 8, 'F');
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(100, 100, 100);
+    doc.text(`Laporan Komprehensif Proyek · Dicetak: ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}`, 14, ph - 3);
+    doc.text(`Halaman ${i} dari ${pages}`, pw - 14, ph - 3, { align: 'right' });
+  }
+  
+  doc.save(`VBT_Rekapitulasi_${currentCluster}_${cl.name.replace(/ /g, '_')}.pdf`);
+  showToast('Laporan rekap A4 landscape berhasil diunduh!', 'success');
+}
 
-        const malangDate = `Malang, ${d.tanggal ? fmtDate(d.tanggal) : ".............................. 20 ......"}`;
-        doc.text(malangDate, pw / 2 + 12, sigY);
-
-        const sig4x = [lx + 5, lx + 45, pw / 2 + 12, pw / 2 + 54];
-        const sig4 = [
-          ["Manajer Keuangan"],
-          ["Manajer Marketing"],
-          ["Sales Advisor"],
-          ["Pemesan / Pembeli"],
-        ];
-
-        sig4.forEach((s, i) => {
-          doc.setFont("helvetica", "normal");
-          doc.setFontSize(8.5);
-          doc.text(s[0], sig4x[i], sigY + 24);
-          doc.line(sig4x[i] - 3, sigY + 21, sig4x[i] + 32, sigY + 21);
-        });
-
-        // PAGE 2 : LAMPIRAN DOKUMEN
-        doc.addPage();
-        doc.setFillColor(15, 37, 24);
-        doc.rect(0, 0, pw, 26, "F");
-        doc.setFillColor(201, 150, 58);
-        doc.rect(0, 26, pw, 1.5, "F");
-
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(13);
-        doc.setTextColor(255, 255, 255);
-        doc.text("VILLA BUKIT TIDAR", 14, 10);
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(8);
-        doc.setTextColor(220, 205, 170);
-        doc.text("DOKUMEN LAMPIRAN PENDUKUNG (VALIDASI DATA)", 14, 16);
-
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(11);
-        doc.setTextColor(255, 255, 255);
-        doc.text(`Kavling ${id} · ${cl.name}`, pw - 14, 10, { align: "right" });
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(8);
-        doc.setTextColor(220, 205, 170);
-        doc.text(`No. SPR: ${d.nospr || "—"}`, pw - 14, 16, { align: "right" });
-
-        let py = 36;
-        doc.setFillColor(30, 60, 40);
-        doc.roundedRect(14, py, pw - 28, 10, 1.5, 1.5, "F");
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(10);
-        doc.setTextColor(201, 150, 58);
-        doc.text("FOTO KTP PEMOHON UTAMA", 20, py + 6.5);
-        py += 15;
-
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(9);
-        doc.setTextColor(50, 50, 50);
-        doc.text(`Nama Tertera : ${d.nama || "—"}`, 14, py);
-        doc.text(`Nomor NIK    : ${d.noktp || "—"}`, 14, py + 5);
-        py += 12;
-
-        if (d.imgKtp) {
-          try {
-            const imgW = pw - 28,
-              imgH = 110;
-            doc.addImage(d.imgKtp, "JPEG", 14, py, imgW, imgH);
-            py += imgH + 10;
-          } catch (e) {
-            doc.setFillColor(245, 245, 245);
-            doc.rect(14, py, pw - 28, 80, "F");
-            doc.setFont("helvetica", "normal");
-            doc.setFontSize(9.5);
-            doc.setTextColor(120);
-            doc.text(
-              "[ Gagal memuat file format gambar KTP ]",
-              pw / 2,
-              py + 40,
-              { align: "center" },
-            );
-            py += 90;
-          }
-        } else {
-          doc.setFillColor(245, 245, 245);
-          doc.rect(14, py, pw - 28, 60, "F");
-          doc.setDrawColor(200);
-          doc.setLineWidth(0.3);
-          doc.rect(14, py, pw - 28, 60);
-          doc.setFont("helvetica", "normal");
-          doc.setFontSize(9.5);
-          doc.setTextColor(150);
-          doc.text(
-            "[ Berkas Foto KTP Belum Diupload Admin ]",
-            pw / 2,
-            py + 30,
-            { align: "center" },
-          );
-          py += 70;
-        }
-
-        if (py > 190) {
-          doc.addPage();
-          py = 32;
-        } else {
-          py += 5;
-        }
-
-        doc.setFillColor(30, 60, 40);
-        doc.roundedRect(14, py, pw - 28, 10, 1.5, 1.5, "F");
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(10);
-        doc.setTextColor(201, 150, 58);
-        doc.text("FOTO KARTU KELUARGA (KK)", 20, py + 6.5);
-        py += 15;
-
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(9);
-        doc.setTextColor(50, 50, 50);
-        doc.text(`Kepala Keluarga : ${d.nama || "—"}`, 14, py);
-        py += 10;
-
-        if (d.imgKk) {
-          try {
-            const imgW2 = pw - 28,
-              imgH2 = 110;
-            doc.addImage(d.imgKk, "JPEG", 14, py, imgW2, imgH2);
-          } catch (e) {
-            doc.setFillColor(245, 245, 245);
-            doc.rect(14, py, pw - 28, 80, "F");
-            doc.setFont("helvetica", "normal");
-            doc.setFontSize(9.5);
-            doc.setTextColor(120);
-            doc.text(
-              "[ Gagal memuat file format gambar KK ]",
-              pw / 2,
-              py + 40,
-              { align: "center" },
-            );
-          }
-        } else {
-          doc.setFillColor(245, 245, 245);
-          doc.rect(14, py, pw - 28, 60, "F");
-          doc.setDrawColor(200);
-          doc.setLineWidth(0.3);
-          doc.rect(14, py, pw - 28, 60);
-          doc.setFont("helvetica", "normal");
-          doc.setFontSize(9.5);
-          doc.setTextColor(150);
-          doc.text(
-            "[ Berkas Foto Kartu Keluarga Belum Diupload Admin ]",
-            pw / 2,
-            py + 30,
-            { align: "center" },
-          );
-        }
-
-        const totalPg = doc.internal.getNumberOfPages();
-        for (let i = 1; i <= totalPg; i++) {
-          if (i > 1) {
-            doc.setPage(i);
-            const pph = doc.internal.pageSize.getHeight();
-            doc.setFillColor(235, 230, 215);
-            doc.rect(0, pph - 8, pw, 8, "F");
-            doc.setFont("helvetica", "normal");
-            doc.setFontSize(7);
-            doc.setTextColor(110);
-            doc.text(
-              `Dicetak: ${new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })} · Sistem Informasi Villa Bukit Tidar`,
-              14,
-              pph - 3,
-            );
-            doc.text(`Halaman ${i} dari ${totalPg}`, pw - 14, pph - 3, {
-              align: "right",
-            });
-          }
-        }
-
-        doc.save(`SPR_${id}_${(d.nama || "KOSONG").replace(/ /g, "_")}.pdf`);
-        showToast("Dokumen SPR ukuran F4 berhasil diunduh!", "success");
-      }
-
-      // ── EXPORT REKAP PDF ──
-      function exportCurrentPdf() {
-        if (!currentCluster) return;
-        const { jsPDF } = window.jspdf;
-        const cl = CLUSTERS[currentCluster];
-        const all = Object.values(cl.kavling);
-
-        const doc = new jsPDF({ orientation: "l", unit: "mm", format: "a4" });
-        const pw = doc.internal.pageSize.getWidth();
-        const ph = doc.internal.pageSize.getHeight();
-
-        const counts = { available: 0, booked: 0, sold: 0 };
-        all.forEach((d) => counts[d.status]++);
-
-        doc.setFillColor(15, 37, 24);
-        doc.rect(0, 0, pw, 24, "F");
-        doc.setFillColor(201, 150, 58);
-        doc.rect(0, 24, pw, 1.5, "F");
-
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(13);
-        doc.setTextColor(255, 255, 255);
-        doc.text("VILLA BUKIT TIDAR", 14, 10);
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(8);
-        doc.setTextColor(220, 205, 170);
-        doc.text("REKAPITULASI DATA PROPERTI REAL-TIME", 14, 15);
-
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(10);
-        doc.setTextColor(255, 255, 255);
-        doc.text(cl.name.toUpperCase(), pw - 14, 11, { align: "right" });
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(8);
-        doc.setTextColor(220, 205, 170);
-        doc.text("LAPORAN STATUS PENJUALAN UNIT CLUSTER", pw - 14, 16, {
-          align: "right",
-        });
-
-        let y = 32;
-        const bw = (pw - 28 - 9) / 3;
-
-        [
-          {
-            l: "UNIT TERSEDIA (AVAILABLE)",
-            v: counts.available,
-            c: [45, 130, 90],
-          },
-          { l: "UNIT DIPESAN (BOOKED)", v: counts.booked, c: [180, 115, 30] },
-          { l: "UNIT TERJUAL (SOLD)", v: counts.sold, c: [150, 40, 40] },
-        ].forEach((b, i) => {
-          const bx = 14 + i * (bw + 4.5);
-          doc.setFillColor(...b.c);
-          doc.roundedRect(bx, y, bw, 13, 1.5, 1.5, "F");
-          doc.setFont("helvetica", "bold");
-          doc.setFontSize(13);
-          doc.setTextColor(255, 255, 255);
-          doc.text(String(b.v), bx + bw / 2, y + 6, { align: "center" });
-          doc.setFont("helvetica", "normal");
-          doc.setFontSize(7);
-          doc.text(b.l, bx + bw / 2, y + 10.5, { align: "center" });
-        });
-
-        y += 19;
-
-        const rows = all
-          .sort((a, b) =>
-            a.id.localeCompare(b.id, undefined, {
-              numeric: true,
-              sensitivity: "base",
-            }),
-          )
-          .map((d) => [
-            d.id,
-            `Blok ${d.blok}`,
-            d.tipe || "—",
-            d.luas + " m²",
-            fmtRp(d.harga),
-            {
-              content: SL[d.status],
-              styles: {
-                fillColor:
-                  d.status === "available"
-                    ? [45, 130, 90]
-                    : d.status === "booked"
-                      ? [180, 115, 30]
-                      : [150, 40, 40],
-                textColor: [255, 255, 255],
-                fontStyle: "bold",
-                halign: "center",
-                fontSize: 6.5,
-              },
-            },
-            d.nama || "—",
-            d.nospr || "—",
-            d.metode || "—",
-            d.tanggal ? fmtDate(d.tanggal) : "—",
-          ]);
-
-        doc.autoTable({
-          startY: y,
-          head: [
-            [
-              "Unit",
-              "Blok",
-              "Tipe",
-              "Luas",
-              "Harga Standar",
-              "Status",
-              "Nama Pembeli",
-              "No. SPR",
-              "Metode",
-              "Tgl. Akad",
-            ],
-          ],
-          body: rows,
-          theme: "grid",
-          styles: { fontSize: 6.8, cellPadding: 1.5, valign: "middle" },
-          headStyles: {
-            fillColor: [15, 37, 24],
-            textColor: [255, 255, 255],
-            fontStyle: "bold",
-            fontSize: 7.2,
-          },
-          alternateRowStyles: { fillColor: [248, 246, 240] },
-          columnStyles: {
-            0: { cellWidth: 12, fontStyle: "bold" },
-            1: { cellWidth: 14 },
-            2: { cellWidth: 18 },
-            3: { halign: "right", cellWidth: 16 },
-            4: { halign: "right", cellWidth: 26 },
-            5: { cellWidth: 18 },
-            6: { cellWidth: 35 },
-            8: { cellWidth: 20 },
-            9: { cellWidth: 24 },
-          },
-          margin: { left: 14, right: 14 },
-          tableWidth: "auto",
-        });
-
-        const pages = doc.internal.getNumberOfPages();
-        for (let i = 1; i <= pages; i++) {
-          doc.setPage(i);
-          doc.setFillColor(232, 223, 200);
-          doc.rect(0, ph - 8, pw, 8, "F");
-          doc.setFont("helvetica", "normal");
-          doc.setFontSize(7);
-          doc.setTextColor(100, 100, 100);
-          doc.text(
-            `Laporan Komprehensif Proyek · Dicetak: ${new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}`,
-            14,
-            ph - 3,
-          );
-          doc.text(`Halaman ${i} dari ${pages}`, pw - 14, ph - 3, {
-            align: "right",
-          });
-        }
-
-        doc.save(
-          `VBT_Rekapitulasi_${currentCluster}_${cl.name.replace(/ /g, "_")}.pdf`,
-        );
-        showToast("Laporan rekap A4 landscape berhasil diunduh!", "success");
-      }
-
-      // ── INIT ──
-      document.getElementById("detailPanel").classList.add("open");
-      updateBreadcrumb(null);
-    </script>
-  </body>
+// ── INIT ──
+document.getElementById('detailPanel').classList.add('open');
+updateBreadcrumb(null);
+</script>
+</body>
 </html>
