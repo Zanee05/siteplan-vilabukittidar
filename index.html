@@ -3,860 +3,463 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Villa Bukit Tidar — Siteplan</title>
+<title>Villa Bukit Tidar — Interactive Siteplan</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght=700;900&family=Inter:wght=300;400;500;600;700&display=swap');
+:root{
+  --forest:#0f2a1f;--moss:#2f6b3e;--sage:#7aa06a;--cream:#fbf9f5;--sand:#ede5cc;
+  --gold:#c9963a;--gold-light:#f5d98a;--terra:#b85c38;--sky:#407ea0;
+  --white:#ffffff;--gray:#6b6b6b;--light:#f7f5f0;
+  --available:#3d9e68;--booked:#d4870e;--sold:#b83030;
+  --panel-bg:rgba(15,42,31,0.96);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:'Inter',sans-serif;background:#e8e0cc;overflow:hidden}
 
-  :root {
-    --forest:   #0f2a1f;
-    --moss:     #2f6b3e;
-    --sage:     #7aa06a;
-    --cream:    #fbf9f5;
-    --sand:     #efe6cc;
-    --gold:     #d4a84a;
-    --terra:    #b85c38;
-    --sky:      #407ea0;
-    --white:    #ffffff;
-    --gray:     #7b7b7b;
-    --light:    #fbfaf7;
+/* NAV */
+#nav{position:fixed;top:0;left:0;right:0;z-index:200;height:56px;
+  background:linear-gradient(90deg,#0d2518 0%,#1a4028 100%);
+  display:flex;align-items:center;justify-content:space-between;padding:0 1.5rem;
+  border-bottom:2px solid var(--gold);}
+.nav-brand{font-family:'Playfair Display',serif;color:var(--gold);font-size:1.05rem;letter-spacing:.03em;line-height:1.1}
+.nav-brand small{display:block;font-family:'Inter',sans-serif;font-size:.62rem;color:rgba(255,255,255,.5);letter-spacing:.12em;font-weight:500}
+.nav-actions{display:flex;gap:.5rem;align-items:center}
+.nav-btn{padding:.35rem .9rem;border-radius:5px;font-size:.78rem;font-weight:600;cursor:pointer;border:none;font-family:'Inter',sans-serif;transition:all .15s}
+.nav-btn.ghost{background:transparent;border:1px solid rgba(255,255,255,.18);color:rgba(255,255,255,.8)}
+.nav-btn.ghost:hover{background:rgba(255,255,255,.08)}
+.nav-btn.gold{background:var(--gold);color:var(--forest)}
+.nav-btn.gold:hover{background:var(--gold-light)}
+#breadcrumb{display:flex;align-items:center;gap:.4rem;font-size:.75rem;color:rgba(255,255,255,.55);margin-left:1rem}
+#breadcrumb .bc-sep{color:rgba(255,255,255,.3)}
+#breadcrumb .bc-active{color:var(--gold-light);font-weight:600}
+#breadcrumb .bc-link{cursor:pointer;transition:color .15s}
+#breadcrumb .bc-link:hover{color:var(--gold-light)}
 
-    /* status colors */
-    --available: #4caf7d;
-    --booked:    #e8a020;
-    --sold:      #c0392b;
-    --reserved:  #6b8fcc;
-  }
+/* LEGEND BAR */
+#legendBar{position:fixed;top:56px;left:0;right:0;z-index:190;height:36px;background:#0a1e12;
+  display:flex;align-items:center;gap:1.5rem;padding:0 1.5rem;
+  border-bottom:1px solid rgba(255,255,255,.06);}
+.leg-item{display:flex;align-items:center;gap:.4rem;font-size:.72rem;color:rgba(255,255,255,.6);font-weight:500;letter-spacing:.04em}
+.leg-dot{width:10px;height:10px;border-radius:2px}
+.leg-label{color:rgba(255,255,255,.35);font-size:.7rem;letter-spacing:.07em}
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+/* ADMIN BAR */
+#adminBar{position:fixed;top:92px;left:0;right:0;z-index:185;height:0;overflow:hidden;transition:height .2s;
+  background:#1a1a2e;color:var(--gold);display:flex;align-items:center;justify-content:center;
+  font-size:.72rem;letter-spacing:.07em;gap:1rem;}
+#adminBar.visible{height:30px}
 
-  body {
-    font-family: 'Inter', sans-serif;
-    background: var(--light);
-    color: var(--forest);
-    min-height: 100vh;
-  }
+/* CANVAS */
+#canvas{position:fixed;top:92px;left:0;right:0;bottom:0;overflow:hidden;}
+#canvas.with-admin{top:122px}
 
-  /* ─── NAV ─── */
-  nav {
-    position: sticky; top: 0; z-index: 100;
-    background: linear-gradient(90deg, rgba(15,42,31,0.98) 0%, rgba(47,107,62,0.95) 100%);
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 0 2rem; height: 64px;
-    box-shadow: 0 2px 16px rgba(0,0,0,.3);
-  }
-  .nav-brand {
-    font-family: 'Playfair Display', serif;
-    color: var(--gold); font-size: 1.1rem; letter-spacing: .04em;
-  }
-  .nav-brand span { color: var(--cream); font-weight: 300; font-size: .85rem; display: block; letter-spacing: .12em; font-family: 'Inter', sans-serif; }
-  .nav-right { display: flex; gap: .75rem; align-items: center; }
-  .btn-nav {
-    padding: .4rem 1rem; border-radius: 6px; font-size: .9rem;
-    cursor: pointer; font-family: 'Inter', sans-serif; font-weight: 600;
-    transition: transform .18s, box-shadow .18s; border: none; box-shadow: 0 6px 18px rgba(16,48,34,0.12);
-  }
-  .btn-nav.outline { background: transparent; border: 1px solid rgba(212,168,74,0.12); color: var(--cream); }
-  .btn-nav.outline:hover { background: rgba(255,255,255,0.04); transform: translateY(-2px); }
-  .btn-nav.solid { background: linear-gradient(180deg,var(--gold), #c69532); color: var(--forest); box-shadow: 0 8px 28px rgba(200,150,50,0.12); }
-  .btn-nav.solid:hover { transform: translateY(-2px); }
+/* MASTER VIEW */
+#masterView{position:absolute;inset:0;display:flex;align-items:stretch}
 
-  /* ─── HERO ─── */
-  .hero {
-    background: linear-gradient(135deg, rgba(15,42,31,0.95) 0%, rgba(47,107,62,0.92) 55%, rgba(122,160,106,0.9) 100%);
-    padding: 3rem 2rem 2rem;
-    text-align: center;
-    position: relative; overflow: hidden;
-  }
-  .hero::before {
-    content: '';
-    position: absolute; inset: 0;
-    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-  }
-  .hero h1 {
-    font-family: 'Playfair Display', serif;
-    font-size: clamp(1.8rem, 4vw, 3rem); color: var(--cream);
-    letter-spacing: .03em; position: relative;
-  }
-  .hero h1 { text-shadow: 0 6px 22px rgba(10,30,18,0.45); }
-  .hero h1 em { color: var(--gold); font-style: normal; }
-  .hero p { color: var(--sand); font-size: .9rem; margin-top: .5rem; letter-spacing: .06em; position: relative; }
+/* MASTER MAP CONTAINER FOR PHYSICAL IMAGE */
+#masterMap{
+  flex:1;
+  overflow:hidden;
+  position:relative;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background:#ebdcb9;
+}
+.master-image-wrap {
+  position: relative;
+  display: inline-block;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+  max-width: 95%;
+  max-height: 80vh;
+}
+.master-image-wrap img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  max-height: 80vh;
+}
 
-  /* ─── LEGEND ─── */
-  .legend-bar {
-    background: var(--white); border-bottom: 1px solid var(--sand);
-    display: flex; gap: 1.5rem; align-items: center;
-    padding: .75rem 2rem; flex-wrap: wrap;
-  }
-  .legend-bar span { font-size: .78rem; color: var(--gray); font-weight: 500; letter-spacing: .05em; }
-  .legend-item { display: flex; align-items: center; gap: .4rem; font-size: .8rem; font-weight: 500; }
-  .dot { width: 12px; height: 12px; border-radius: 2px; flex-shrink: 0; }
+/* CLUSTER GATES */
+.cluster-gate-hitbox {
+  position: absolute;
+  box-sizing: border-box;
+  background: rgba(201, 150, 58, 0);
+  border: 2px dashed rgba(201, 150, 58, 0);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+}
+.cluster-gate-hitbox:hover {
+  background: rgba(201, 150, 58, 0.15);
+  border-color: var(--gold);
+  box-shadow: 0 0 15px rgba(201, 150, 58, 0.4);
+}
 
-  /* ─── MAIN LAYOUT ─── */
-  .main-wrap {
-    display: block;
-    min-height: calc(100vh - 130px);
-  }
+.gate-label {
+  background: var(--panel-bg);
+  color: var(--gold-light);
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  font-size: 0.7rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 4px;
+  border: 1px solid var(--gold);
+  pointer-events: none;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  letter-spacing: 0.05em;
+  transform: translateY(0);
+  transition: transform 0.2s;
+}
+.cluster-gate-hitbox:hover .gate-label {
+  transform: translateY(-2px);
+  background: #0f2a1f;
+  color: #ffffff;
+}
 
-  /* ─── SITEPLAN CANVAS ─── */
-  .siteplan-wrap {
-    background: linear-gradient(180deg, var(--cream), #fff);
-    padding: 1.5rem;
-    overflow: auto;
-    position: relative;
-  }
-  .siteplan-wrap h2 {
-    font-family: 'Playfair Display', serif;
-    font-size: 1.1rem; color: var(--forest);
-    margin-bottom: 1rem; padding-bottom: .5rem;
-    border-bottom: 2px solid var(--gold);
-    display: inline-block;
-  }
-  #siteplan-svg {
-    width: 100%; max-width: 860px;
-    border-radius: 8px;
-    box-shadow: 0 4px 24px rgba(0,0,0,.1);
-    display: block; margin: 0 auto;
-    cursor: default;
-  }
+/* DETAIL PANEL */
+#detailPanel{width:0;overflow:hidden;background:var(--panel-bg);transition:width .3s cubic-bezier(.4,0,.2,1);
+  display:flex;flex-direction:column;border-left:1px solid rgba(255,255,255,.08);
+  position:relative;z-index:10;flex-shrink:0;}
+#detailPanel.open{width:360px}
+#detailPanelInner{width:360px;height:100%;overflow-y:auto;padding:1.25rem 1.25rem 2rem;
+  scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.15) transparent;}
 
-  /* ─── STATS SECTION ─── */
-  .stats-section {
-    background: var(--cream);
-    padding: 1.5rem;
-    text-align: center;
-  }
-  .stats-section h3 {
-    font-family: 'Playfair Display', serif;
-    font-size: 1rem; color: var(--forest);
-    margin-bottom: 1rem; padding-bottom: .5rem;
-    border-bottom: 2px solid var(--gold);
-    display: inline-block;
-  }
+/* CLUSTER VIEW */
+#clusterView{position:absolute;inset:0;background:#f0ebe0;display:none;flex-direction:column;}
+#clusterView.show{display:flex}
+#clusterHeader{background:linear-gradient(90deg,#0d2518,#1a4028);padding:.75rem 1.5rem;
+  display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid var(--gold);flex-shrink:0;}
+#clusterTitle{font-family:'Playfair Display',serif;color:var(--gold);font-size:1.1rem}
+#clusterSubtitle{font-size:.72rem;color:rgba(255,255,255,.5);margin-top:.1rem;letter-spacing:.06em}
+.btn-back{display:flex;align-items:center;gap:.4rem;padding:.35rem .85rem;border-radius:5px;
+  background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:white;
+  font-size:.78rem;font-weight:600;cursor:pointer;transition:all .15s;}
+.btn-back:hover{background:rgba(255,255,255,.18)}
+#clusterBody{flex:1;display:flex;overflow:hidden;justify-content:center;align-items:center;padding:1rem;}
 
-  /* kavling hover */
-  .kavling {
-    cursor: pointer;
-    transition: filter .15s, opacity .15s;
-  }
-  .kavling:hover { filter: brightness(1.15); opacity: .88; }
+/* CONTAINER MAP KAVLING OVERLAY */
+#clusterMapWrap{
+  position:relative;
+  display:inline-block;
+  box-shadow:0 8px 24px rgba(0,0,0,0.15);
+  border-radius:8px;
+  overflow:hidden;
+  max-width: 100%;
+  max-height: 74vh;
+}
+#clusterMapWrap img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  max-height: 74vh;
+}
 
-  /* ─── SIDEBAR ─── */
-  .sidebar {
-    display: none;
-  }
-  .sidebar-tabs {
-    display: flex; border-bottom: 2px solid var(--sand);
-  }
-  .tab-btn {
-    flex: 1; padding: .75rem .5rem;
-    background: none; border: none; cursor: pointer;
-    font-family: 'Inter', sans-serif; font-size: .8rem;
-    font-weight: 600; letter-spacing: .04em; color: var(--gray);
-    transition: all .2s; border-bottom: 2px solid transparent;
-    margin-bottom: -2px;
-  }
-  .tab-btn.active { color: var(--forest); border-bottom-color: var(--gold); }
+/* INDIVIDUAL INTERACTIVE KAVLING BOXES WITH SEMI-TRANSPARENT STATUS COLORS */
+.kavling-hitbox {
+  position: absolute;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  font-size: 0.72rem;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.9);
+  cursor: pointer;
+  transition: all 0.18s ease;
+  border: 1px dashed rgba(255, 255, 255, 0.5);
+  border-radius: 2px;
+}
+.kavling-hitbox:hover {
+  transform: scale(1.02);
+  z-index: 10;
+  border: 2px solid var(--white);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+  outline: 2px solid var(--gold);
+}
 
-  .tab-pane { display: none; padding: 1.25rem; flex: 1; overflow-y: auto; }
-  .tab-pane.active { display: block; }
+/* STATUS OVERLAY COLORS */
+.kv-status-available { background: rgba(61, 158, 104, 0.55); } /* Green translucent */
+.kv-status-booked { background: rgba(212, 135, 14, 0.6); }    /* Orange translucent */
+.kv-status-sold { background: rgba(184, 48, 48, 0.6); }       /* Red translucent */
 
-  /* detail card */
-  .detail-placeholder {
-    text-align: center; padding: 2.5rem 1rem; color: var(--gray);
-  }
-  .detail-placeholder svg { opacity: .3; margin-bottom: 1rem; }
-  .detail-placeholder p { font-size: .85rem; line-height: 1.6; }
+/* STATS STRIP */
+#statsStrip{display:flex;gap:0;border-top:1px solid rgba(255,255,255,.08);flex-shrink:0;}
+.stat-item{flex:1;padding:.5rem;text-align:center;border-right:1px solid rgba(255,255,255,.06);}
+.stat-item:last-child{border-right:none}
+.stat-num{font-size:1rem;font-weight:700;color:white}
+.stat-lbl{font-size:.58rem;text-transform:uppercase;letter-spacing:.07em;color:rgba(255,255,255,.4);margin-top:.1rem}
+.stat-available .stat-num{color:#6dd69a}
+.stat-booked .stat-num{color:#f0b44a}
+.stat-sold .stat-num{color:#ef8080}
 
-  .detail-card { animation: fadeIn .25s ease; }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+/* CLUSTER CARDS */
+.cluster-info-card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;
+  padding:.9rem 1rem;margin-bottom:.6rem;cursor:pointer;transition:all .18s;}
+.cluster-info-card:hover{background:rgba(255,255,255,.1);border-color:var(--gold);transform:translateX(3px)}
+.cic-name{font-size:.9rem;font-weight:700;color:white;margin-bottom:.3rem}
+.cic-meta{font-size:.72rem;color:rgba(255,255,255,.45);display:flex;gap:.75rem}
+.cic-bar{height:4px;background:rgba(255,255,255,.1);border-radius:2px;margin-top:.65rem;overflow:hidden}
+.cic-bar-fill{height:100%;border-radius:2px;background:var(--gold)}
 
-  .kavling-badge {
-    display: inline-flex; align-items: center; gap: .5rem;
-    padding: .3rem .8rem; border-radius: 20px; font-size: .75rem; font-weight: 600;
-    margin-bottom: 1rem; letter-spacing: .04em;
-  }
-  .badge-available { background: linear-gradient(90deg,#e8f8ef,#eef9f0); color: #1d6b44; box-shadow: inset 0 -2px 0 rgba(0,0,0,0.02); }
-  .badge-booked    { background: linear-gradient(90deg,#fff7e8,#fff3e0); color: #b07010; }
-  .badge-sold      { background: linear-gradient(90deg,#fff0f0,#fff6f6); color: #a02b2b; }
-  .badge-reserved  { background: #e8eef8; color: #3a5a9a; }
+/* MODALS */
+.modal-overlay{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.75);backdrop-filter:blur(6px);
+  display:flex;align-items:center;justify-content:center;padding:1rem;
+  opacity:0;pointer-events:none;transition:opacity .22s;}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{background:#0f2520;border:1px solid rgba(255,255,255,.1);border-radius:12px;width:100%;
+  max-width:580px;max-height:90vh;overflow-y:auto;padding:1.75rem;
+  transform:translateY(16px);transition:transform .22s ease;
+  scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.15) transparent;}
+.modal-overlay.open .modal{transform:none}
+.modal-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.25rem}
+.modal-title{font-family:'Playfair Display',serif;font-size:1.2rem;color:white}
+.modal-sub{font-size:.75rem;color:rgba(255,255,255,.45);margin-top:.2rem}
+.modal-close{background:none;border:none;cursor:pointer;color:rgba(255,255,255,.5);font-size:1.5rem;line-height:1;padding:.1rem}
+.modal-close:hover{color:white}
 
-  .detail-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 1.5rem; color: var(--forest); margin-bottom: .25rem;
-  }
-  .detail-sub { font-size: .8rem; color: var(--gray); margin-bottom: 1.2rem; }
-  .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; margin-bottom: 1.2rem; }
-  .d-item { background: var(--light); border-radius: 6px; padding: .6rem .8rem; }
-  .d-item label { font-size: .68rem; text-transform: uppercase; letter-spacing: .08em; color: var(--gray); display: block; margin-bottom: .2rem; }
-  .d-item value { font-size: .9rem; font-weight: 600; color: var(--forest); }
+/* KAVLING DETAIL POPUP */
+#kavlingModal .modal{max-width:620px}
+.kv-popup-grid{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.75rem}
+.kv-popup-cell{background:rgba(255,255,255,.05);border-radius:6px;padding:.6rem .75rem;border:1px solid rgba(255,255,255,.07)}
+.kv-popup-label{font-size:.6rem;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.4);margin-bottom:.2rem}
+.kv-popup-val{font-size:.9rem;font-weight:600;color:white}
+.popup-doc-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-top:.5rem}
+.popup-doc-box{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:8px;overflow:hidden}
+.popup-doc-title{font-size:.65rem;text-transform:uppercase;letter-spacing:.08em;color:var(--gold);
+  font-weight:700;padding:.5rem .75rem;border-bottom:1px solid rgba(255,255,255,.08)}
+.popup-doc-img{width:100%;height:160px;object-fit:contain;background:rgba(0,0,0,.3);display:block}
+.popup-doc-empty{height:160px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  color:rgba(255,255,255,.25);font-size:.78rem;gap:.4rem}
+.popup-doc-empty span{font-size:2rem;opacity:.4}
+.popup-buyer-section{background:rgba(255,255,255,.04);border-radius:8px;padding:.9rem;border:1px solid rgba(255,255,255,.07);margin-bottom:.75rem}
+.popup-actions{display:grid;grid-template-columns:1fr;gap:.5rem;margin-top:.75rem}
+.popup-actions.two-cols{grid-template-columns:1fr 1fr}
 
-  .divider { border: none; border-top: 1px solid var(--sand); margin: 1rem 0; }
+/* FORM */
+.form-section{font-size:.6rem;text-transform:uppercase;letter-spacing:.1em;color:var(--gold);font-weight:700;
+  margin:1.1rem 0 .6rem;padding-bottom:.3rem;border-bottom:1px solid rgba(255,255,255,.08)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:.7rem}
+.form-group{margin-bottom:.7rem}
+.form-group label{display:block;font-size:.68rem;font-weight:600;letter-spacing:.06em;color:rgba(255,255,255,.55);margin-bottom:.28rem;text-transform:uppercase}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:.5rem .75rem;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:5px;
+  font-family:'Inter',sans-serif;font-size:.82rem;color:white;outline:none;transition:border-color .18s;}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--gold)}
+.form-group select option{background:#1a3028;color:white}
+.form-group textarea{resize:vertical;min-height:60px}
+.form-group input[readonly]{opacity:.5;cursor:not-allowed}
+.btn-submit{width:100%;padding:.7rem;margin-top:.5rem;background:var(--moss);color:white;border:none;border-radius:7px;
+  font-size:.88rem;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;transition:background .15s;}
+.btn-submit:hover{background:#3a8450}
+.login-modal{max-width:360px}
 
-  /* buyer info */
-  .buyer-section h4 { font-size: .78rem; text-transform: uppercase; letter-spacing: .08em; color: var(--gray); margin-bottom: .75rem; }
-  .buyer-row { display: flex; gap: .5rem; align-items: flex-start; margin-bottom: .5rem; font-size: .82rem; }
-  .buyer-row .bl { width: 90px; color: var(--gray); flex-shrink: 0; }
-  .buyer-row .bv { color: var(--forest); font-weight: 500; }
+/* UPLOAD ZONE */
+.upload-zone{border:1.5px dashed rgba(255,255,255,.2);border-radius:6px;padding:.6rem;text-align:center;cursor:pointer;
+  transition:border-color .18s,background .18s;background:rgba(255,255,255,.03);}
+.upload-zone:hover{border-color:var(--gold);background:rgba(201,150,58,.06)}
+.uz-icon{font-size:1.3rem;margin-bottom:.25rem}
+.upload-zone p {font-size:.68rem;color:rgba(255,255,255,.4)}
+.upload-zone p strong{color:rgba(255,255,255,.65)}
+.upload-preview{margin-top:.4rem;display:none}
+.upload-preview img{width:100%;max-height:80px;object-fit:cover;border-radius:4px;border:1px solid rgba(255,255,255,.12)}
+.up-name{font-size:.62rem;color:rgba(255,255,255,.45);margin-top:.2rem;text-overflow:ellipsis;overflow:hidden;white-space:nowrap}
+.up-clear{font-size:.62rem;color:#ef8080;cursor:pointer}
 
-  /* stats */
-  .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; margin-bottom: 1.5rem; }
-  .stat-card {
-    border-radius: 12px; padding: 1rem;
-    display: flex; flex-direction: column; gap: .3rem;
-    box-shadow: 0 12px 30px rgba(43,64,43,0.06);
-    transition: transform .18s, box-shadow .18s;
-  }
-  .stat-card:hover { transform: translateY(-6px); box-shadow: 0 18px 48px rgba(43,64,43,0.09); }
-  .stat-card .s-num { font-size: 1.6rem; font-weight: 700; }
-  .stat-card .s-lbl { font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; opacity: .8; }
-  .sc-available { background: #e8f8ef; color: #2d7a54; }
-  .sc-booked    { background: #fef3e2; color: #b07010; }
-  .sc-sold      { background: #fce8e8; color: #922020; }
-  .sc-reserved  { background: #e8eef8; color: #3a5a9a; }
+/* TOAST */
+.toast{position:fixed;bottom:1.5rem;right:1.5rem;z-index:900;background:#0f2520;color:rgba(255,255,255,.9);
+  padding:.7rem 1.1rem;border-radius:7px;font-size:.82rem;box-shadow:0 8px 24px rgba(0,0,0,.4);
+  transform:translateY(60px);opacity:0;transition:all .3s cubic-bezier(.34,1.56,.64,1);
+  max-width:300px;border-left:3px solid var(--gold);}
+.toast.show{transform:none;opacity:1}
+.toast.error{border-left-color:var(--sold)}
 
-  .list-kavling { list-style: none; }
-  .list-kavling li {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: .55rem .75rem; border-radius: 6px; margin-bottom: .3rem;
-    font-size: .82rem; cursor: pointer; transition: background .15s;
-  }
-  .list-kavling li:hover { background: var(--light); }
-  .list-kavling .lk-id { font-weight: 600; color: var(--forest); }
-  .list-kavling .lk-size { color: var(--gray); font-size: .75rem; }
-  .lk-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-
-  /* ─── MODAL ─── */
-  .modal-overlay {
-    position: fixed; inset: 0; z-index: 200;
-    background: rgba(0,0,0,.6); backdrop-filter: blur(4px);
-    display: flex; align-items: center; justify-content: center;
-    padding: 1rem;
-    opacity: 0; pointer-events: none; transition: opacity .25s;
-  }
-  .modal-overlay.open { opacity: 1; pointer-events: all; }
-  .modal {
-    background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(250,250,248,0.98)); border-radius: 14px;
-    width: 100%; max-width: 640px;
-    max-height: 92vh; overflow-y: auto;
-    padding: 1.75rem;
-    transform: translateY(18px); transition: transform .22s ease;
-    box-shadow: 0 30px 90px rgba(8,24,16,0.18);
-  }
-  .modal-overlay.open .modal { transform: none; }
-  .modal-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; }
-  .modal-header h3 { font-family: 'Playfair Display', serif; font-size: 1.3rem; color: var(--forest); }
-  .modal-header p { font-size: .8rem; color: var(--gray); margin-top: .2rem; }
-  .modal-close { background: none; border: none; cursor: pointer; color: var(--gray); font-size: 1.4rem; line-height: 1; padding: .2rem; }
-
-  .form-group { margin-bottom: 1rem; }
-  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-  .form-group label { display: block; font-size: .75rem; font-weight: 600; letter-spacing: .05em; color: var(--forest); margin-bottom: .35rem; }
-  .form-group input, .form-group select, .form-group textarea {
-    width: 100%; padding: .6rem .85rem;
-    border: 1.5px solid var(--sand); border-radius: 6px;
-    font-family: 'Inter', sans-serif; font-size: .85rem;
-    background: var(--light); color: var(--forest);
-    transition: border-color .2s;
-    outline: none;
-  }
-  .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
-    border-color: var(--moss);
-  }
-  .form-group textarea { resize: vertical; min-height: 72px; }
-
-  .form-section-title {
-    font-size: .7rem; text-transform: uppercase; letter-spacing: .1em;
-    color: var(--gold); font-weight: 600; margin: 1.5rem 0 .75rem;
-    padding-bottom: .4rem; border-bottom: 1px solid var(--sand);
-  }
-
-  .upload-zone {
-    border: 2px dashed var(--sand); border-radius: 8px;
-    padding: 1.2rem; text-align: center; cursor: pointer;
-    transition: border-color .2s, background .2s;
-    position: relative; overflow: hidden;
-  }
-  .upload-zone:hover { border-color: var(--moss); background: #f0f5f0; }
-  .upload-zone input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
-  .upload-zone p { font-size: .78rem; color: var(--gray); }
-  .upload-zone .upload-icon { font-size: 1.5rem; margin-bottom: .3rem; }
-  .upload-preview { display: none; }
-  .upload-preview img { max-height: 80px; border-radius: 4px; margin-top: .5rem; box-shadow: 0 10px 30px rgba(0,0,0,0.12); border: 1px solid rgba(0,0,0,0.03); }
-
-  .btn-submit {
-    width: 100%; padding: .8rem;
-    background: var(--moss); color: var(--white);
-    border: none; border-radius: 8px; cursor: pointer;
-    font-family: 'Inter', sans-serif; font-size: .9rem; font-weight: 600;
-    letter-spacing: .04em; transition: background .2s; margin-top: .5rem;
-  }
-  .btn-submit:hover { background: var(--forest); }
-  .btn-submit:disabled { opacity: .5; cursor: not-allowed; }
-
-  /* login modal */
-  .login-card { max-width: 380px; }
-
-  /* toast */
-  .toast {
-    position: fixed; bottom: 2rem; right: 2rem; z-index: 500;
-    background: var(--forest); color: var(--cream);
-    padding: .85rem 1.4rem; border-radius: 8px;
-    font-size: .85rem; box-shadow: 0 8px 24px rgba(0,0,0,.3);
-    transform: translateY(80px); opacity: 0;
-    transition: all .35s cubic-bezier(.34,1.56,.64,1);
-    max-width: 320px;
-  }
-  .toast.show { transform: none; opacity: 1; }
-  .toast.success { border-left: 4px solid var(--available); }
-  .toast.error   { border-left: 4px solid var(--sold); }
-
-  /* admin indicator */
-  .admin-bar {
-    background: #1a1a2e; color: var(--gold);
-    text-align: center; padding: .35rem 1rem; font-size: .75rem;
-    letter-spacing: .08em; display: none;
-  }
-  .admin-bar.visible { display: block; }
-
-  /* image modal */
-  .img-modal-overlay {
-    position: fixed; inset: 0; z-index: 300;
-    background: rgba(0,0,0,.85);
-    display: flex; align-items: center; justify-content: center;
-    padding: 1rem;
-    opacity: 0; pointer-events: none; transition: opacity .2s;
-  }
-  .img-modal-overlay.open { opacity: 1; pointer-events: all; }
-  .img-modal-overlay img { max-width: 90vw; max-height: 85vh; border-radius: 8px; }
-  .img-modal-close {
-    position: absolute; top: 1rem; right: 1.5rem;
-    background: none; border: none; color: white; font-size: 2rem; cursor: pointer;
-  }
-
-  .kavling-img-row { display: flex; gap: .5rem; flex-wrap: wrap; margin-top: .5rem; }
-  .kavling-img-thumb {
-    width: 60px; height: 60px; object-fit: cover;
-    border-radius: 4px; cursor: pointer; border: 2px solid var(--sand);
-    transition: border-color .2s;
-  }
-  .kavling-img-thumb:hover { border-color: var(--moss); }
-
-  .pill {
-    display: inline-block; padding: .15rem .55rem; border-radius: 10px;
-    font-size: .68rem; font-weight: 600; letter-spacing: .03em;
-  }
-  .pill-cash { background: #e8f8ef; color: #2d7a54; }
-  .pill-kpr  { background: #e8eef8; color: #3a5a9a; }
-  .pill-cash-tempo { background: #fef3e2; color: #b07010; }
-
-  /* ─── EXPORT MODAL ─── */
-  .export-grid {
-    display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; margin-bottom: 1.25rem;
-  }
-  .export-card {
-    border-radius: 12px;
-    padding: 1.2rem .9rem; cursor: pointer; transition: transform .18s, box-shadow .18s, border-color .18s;
-    text-align: center; position: relative; background: linear-gradient(180deg,#fff,#fbfbf9);
-    box-shadow: 0 10px 30px rgba(20,60,36,0.04); border: 1px solid rgba(16,40,28,0.06);
-  }
-  .export-card:hover { transform: translateY(-6px); box-shadow: 0 20px 48px rgba(24,72,40,0.06); }
-  .export-card.selected { border-color: var(--moss); background: linear-gradient(180deg,#edf9ef,#e8f7ea); box-shadow: 0 20px 48px rgba(24,72,40,0.08); }
-  .export-card .ec-icon { font-size: 1.8rem; margin-bottom: .4rem; }
-  .export-card .ec-title { font-size: .82rem; font-weight: 700; color: var(--forest); margin-bottom: .2rem; }
-  .export-card .ec-desc { font-size: .7rem; color: var(--gray); line-height: 1.4; }
-  .export-card input[type=radio] { position: absolute; opacity: 0; }
-
-  .filter-row { display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: 1rem; }
-  .filter-chip {
-    padding: .3rem .75rem; border-radius: 20px; font-size: .75rem; font-weight: 600;
-    cursor: pointer; border: 1.5px solid var(--sand); background: var(--light);
-    color: var(--gray); transition: all .18s;
-  }
-  .filter-chip.on { border-color: var(--moss); background: var(--moss); color: white; }
-
-  .export-progress {
-    display: none; text-align: center; padding: 1.5rem;
-  }
-  .export-progress.show { display: block; }
-  .spinner {
-    width: 36px; height: 36px; border: 3px solid var(--sand);
-    border-top-color: var(--moss); border-radius: 50%;
-    animation: spin .7s linear infinite; margin: 0 auto .75rem;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .btn-export {
-    width: 100%; padding: .9rem;
-    background: linear-gradient(180deg, var(--forest), #0b2518); color: var(--white);
-    border: none; border-radius: 10px; cursor: pointer;
-    font-family: 'Inter', sans-serif; font-size: .98rem; font-weight: 700;
-    letter-spacing: .04em; transition: transform .16s, box-shadow .16s; margin-top: .25rem;
-    display: flex; align-items: center; justify-content: center; gap: .6rem;
-    box-shadow: 0 14px 40px rgba(5,30,18,0.18);
-  }
-  .btn-export:hover { transform: translateY(-4px); box-shadow: 0 22px 54px rgba(5,30,18,0.2); }
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:3px}
 </style>
 </head>
 <body>
 
-<!-- Admin bar -->
-<div class="admin-bar" id="adminBar">
-  ⚙ MODE ADMIN AKTIF — Klik kavling untuk mengisi/mengubah data
-  <button onclick="openExportModal()" style="margin-left:1.5rem;padding:.25rem .9rem;background:var(--gold);color:var(--forest);border:none;border-radius:4px;font-size:.73rem;font-weight:700;cursor:pointer;letter-spacing:.04em;">📄 EXPORT PDF</button>
-  <button onclick="exportSiteplanPdf()" style="margin-left:0.75rem;padding:.25rem .9rem;background:#2f6b3e;color:#fff;border:none;border-radius:4px;font-size:.73rem;font-weight:700;cursor:pointer;letter-spacing:.04em;">🗺️ EXPORT SITPLAN</button>
-</div>
-
-<!-- Navbar -->
-<nav>
-  <div class="nav-brand">
-    Villa Bukit Tidar
-    <span>SITEPLAN INTERAKTIF</span>
+<nav id="nav">
+  <div style="display:flex;align-items:center">
+    <div class="nav-brand">Villa Bukit Tidar<small>SITEPLAN INTERAKTIF</small></div>
+    <div id="breadcrumb"><span class="bc-sep">›</span><span class="bc-active">Master Plan</span></div>
   </div>
-  <div class="nav-right" id="navRight">
-    <button class="btn-nav outline" onclick="openLoginModal()">Login Admin</button>
+  <div class="nav-actions">
+    <span id="navUser" style="font-size:.75rem;color:var(--gold);font-weight:600;display:none">⚙ Admin</span>
+    <button class="nav-btn ghost" id="btnLogin" onclick="openLoginModal()">Login Admin</button>
+    <button class="nav-btn ghost" id="btnLogout" onclick="doLogout()" style="display:none">Keluar</button>
+    <button class="nav-btn gold" id="btnExport" onclick="exportCurrentPdf()" style="display:none">⬇ Export Rekap PDF</button>
   </div>
 </nav>
 
-<!-- Legend -->
-<div class="legend-bar">
-  <span>STATUS KAVLING:</span>
-  <div class="legend-item"><div class="dot" style="background:var(--available)"></div> Tersedia</div>
-  <div class="legend-item"><div class="dot" style="background:var(--booked)"></div> Dipesan</div>
-  <div class="legend-item"><div class="dot" style="background:var(--sold)"></div> Terjual</div>
+<div id="legendBar">
+  <span class="leg-label">STATUS :</span>
+  <div class="leg-item"><div class="leg-dot" style="background:var(--available)"></div>Tersedia</div>
+  <div class="leg-item"><div class="leg-dot" style="background:var(--booked)"></div>Dipesan</div>
+  <div class="leg-item"><div class="leg-dot" style="background:var(--sold)"></div>Terjual</div>
 </div>
 
-<!-- Main -->
-<div class="main-wrap">
+<div id="adminBar">⚙ MODE ADMIN — Klik kavling untuk melihat & edit data</div>
 
-  <!-- Siteplan -->
-  <div class="siteplan-wrap">
-    <h2>Siteplan Phase 1</h2>
-    <div class="svg-frame">
-      <svg id="siteplan-svg" viewBox="0 0 860 600" xmlns="http://www.w3.org/2000/svg">
-
-      <!-- Background -->
-      <rect width="860" height="600" fill="#d6c9a8"/>
-
-      <!-- Roads -->
-      <rect x="0" y="270" width="860" height="34" fill="#b0a080" rx="0"/>
-      <rect x="400" y="0" width="34" height="600" fill="#b0a080"/>
-      <rect x="160" y="0" width="28" height="270" fill="#bfb28a"/>
-      <rect x="620" y="304" width="28" height="296" fill="#bfb28a"/>
-      <rect x="0" y="120" width="400" height="24" fill="#bfb28a"/>
-      <rect x="434" y="440" width="426" height="24" fill="#bfb28a"/>
-
-      <!-- Road stripes -->
-      <g stroke="#e8dfc8" stroke-width="2" stroke-dasharray="18,14" opacity=".6">
-        <line x1="0" y1="287" x2="860" y2="287"/>
-        <line x1="417" y1="0" x2="417" y2="600"/>
-      </g>
-
-      <!-- Road labels -->
-      <text x="200" y="291" font-family="Inter" font-size="10" fill="#7a6e58" text-anchor="middle" letter-spacing="2">JALAN UTAMA</text>
-      <text x="660" y="291" font-family="Inter" font-size="10" fill="#7a6e58" text-anchor="middle" letter-spacing="2">JALAN UTAMA</text>
-      <text x="417" y="200" font-family="Inter" font-size="9" fill="#7a6e58" text-anchor="middle" letter-spacing="1.5" transform="rotate(-90 417 200)">JL. UTARA-SELATAN</text>
-
-      <!-- Compass -->
-      <g transform="translate(810,40)">
-        <circle cx="0" cy="0" r="22" fill="white" opacity=".85" stroke="#b0a080" stroke-width="1.5"/>
-        <polygon points="0,-16 5,4 0,0 -5,4" fill="#1a2e1c"/>
-        <polygon points="0,16 5,-4 0,0 -5,-4" fill="#8a8a7a"/>
-        <text x="0" y="-20" font-family="Inter" font-size="8" fill="#1a2e1c" text-anchor="middle" font-weight="700">N</text>
-      </g>
-
-      <!-- ═══ BLOK A — top-left ═══ -->
-      <!-- A1 -->
-      <rect class="kavling" id="k-A1" x="16" y="16" width="68" height="88" rx="3"
-        fill="var(--available)" stroke="white" stroke-width="1.5"
-        onclick="kavlingClick('A1')"/>
-      <text x="50" y="56" font-family="Inter" font-size="10" fill="white" text-anchor="middle" font-weight="700" pointer-events="none">A1</text>
-      <text x="50" y="70" font-family="Inter" font-size="8.5" fill="white" text-anchor="middle" opacity=".85" pointer-events="none">120 m²</text>
-
-      <!-- A2 -->
-      <rect class="kavling" id="k-A2" x="90" y="16" width="68" height="88" rx="3"
-        fill="var(--booked)" stroke="white" stroke-width="1.5"
-        onclick="kavlingClick('A2')"/>
-      <text x="124" y="56" font-family="Inter" font-size="10" fill="white" text-anchor="middle" font-weight="700" pointer-events="none">A2</text>
-      <text x="124" y="70" font-family="Inter" font-size="8.5" fill="white" text-anchor="middle" opacity=".85" pointer-events="none">120 m²</text>
-
-      <!-- A3 -->
-      <rect class="kavling" id="k-A3" x="16" y="136" width="68" height="88" rx="3"
-        fill="var(--sold)" stroke="white" stroke-width="1.5"
-        onclick="kavlingClick('A3')"/>
-      <text x="50" y="176" font-family="Inter" font-size="10" fill="white" text-anchor="middle" font-weight="700" pointer-events="none">A3</text>
-      <text x="50" y="190" font-family="Inter" font-size="8.5" fill="white" text-anchor="middle" opacity=".85" pointer-events="none">120 m²</text>
-
-      <!-- A4 -->
-      <rect class="kavling" id="k-A4" x="90" y="136" width="68" height="88" rx="3"
-        fill="var(--available)" stroke="white" stroke-width="1.5"
-        onclick="kavlingClick('A4')"/>
-      <text x="124" y="176" font-family="Inter" font-size="10" fill="white" text-anchor="middle" font-weight="700" pointer-events="none">A4</text>
-      <text x="124" y="190" font-family="Inter" font-size="8.5" fill="white" text-anchor="middle" opacity=".85" pointer-events="none">120 m²</text>
-
-      <!-- Block label A -->
-      <text x="50" y="115" font-family="Playfair Display" font-size="9" fill="white" text-anchor="middle" font-weight="700" opacity=".7" pointer-events="none">BLOK A</text>
-
-      <!-- ═══ BLOK B — between roads top ═══ -->
-      <!-- B1 -->
-      <rect class="kavling" id="k-B1" x="196" y="16" width="72" height="88" rx="3"
-        fill="var(--available)" stroke="white" stroke-width="1.5"
-        onclick="kavlingClick('B1')"/>
-      <text x="232" y="56" font-family="Inter" font-size="10" fill="white" text-anchor="middle" font-weight="700" pointer-events="none">B1</text>
-      <text x="232" y="70" font-family="Inter" font-size="8.5" fill="white" text-anchor="middle" opacity=".85" pointer-events="none">144 m²</text>
-
-      <!-- B2 -->
-      <rect class="kavling" id="k-B2" x="276" y="16" width="72" height="88" rx="3"
-        fill="var(--booked)" stroke="white" stroke-width="1.5"
-        onclick="kavlingClick('B2')"/>
-      <text x="312" y="56" font-family="Inter" font-size="10" fill="white" text-anchor="middle" font-weight="700" pointer-events="none">B2</text>
-      <text x="312" y="70" font-family="Inter" font-size="8.5" fill="white" text-anchor="middle" opacity=".85" pointer-events="none">144 m²</text>
-
-      <!-- B3 -->
-      <rect class="kavling" id="k-B3" x="196" y="152" width="72" height="100" rx="3"
-        fill="var(--sold)" stroke="white" stroke-width="1.5"
-        onclick="kavlingClick('B3')"/>
-      <text x="232" y="198" font-family="Inter" font-size="10" fill="white" text-anchor="middle" font-weight="700" pointer-events="none">B3</text>
-      <text x="232" y="212" font-family="Inter" font-size="8.5" fill="white" text-anchor="middle" opacity=".85" pointer-events="none">160 m²</text>
-
-      <!-- B4 -->
-      <rect class="kavling" id="k-B4" x="276" y="152" width="72" height="100" rx="3"
-        fill="var(--available)" stroke="white" stroke-width="1.5"
-        onclick="kavlingClick('B4')"/>
-      <text x="312" y="198" font-family="Inter" font-size="10" fill="white" text-anchor="middle" font-weight="700" pointer-events="none">B4</text>
-      <text x="312" y="212" font-family="Inter" font-size="8.5" fill="white" text-anchor="middle" opacity=".85" pointer-events="none">160 m²</text>
-
-      <text x="312" y="115" font-family="Playfair Display" font-size="9" fill="white" text-anchor="middle" font-weight="700" opacity=".7" pointer-events="none">BLOK B</text>
-
-      <!-- ═══ BLOK C — top right ═══ -->
-      <!-- C1 -->
-      <rect class="kavling" id="k-C1" x="446" y="16" width="76" height="90" rx="3"
-        fill="var(--available)" stroke="white" stroke-width="1.5"
-        onclick="kavlingClick('C1')"/>
-      <text x="484" y="57" font-family="Inter" font-size="10" fill="white" text-anchor="middle" font-weight="700" pointer-events="none">C1</text>
-      <text x="484" y="71" font-family="Inter" font-size="8.5" fill="white" text-anchor="middle" opacity=".85" pointer-events="none">152 m²</text>
-
-      <!-- C2 -->
-      <rect class="kavling" id="k-C2" x="530" y="16" width="76" height="90" rx="3"
-        fill="var(--booked)" stroke="white" stroke-width="1.5"
-        onclick="kavlingClick('C2')"/>
-      <text x="568" y="57" font-family="Inter" font-size="10" fill="white" text-anchor="middle" font-weight="700" pointer-events="none">C2</text>
-      <text x="568" y="71" font-family="Inter" font-size="8.5" fill="white" text-anchor="middle" opacity=".85" pointer-events="none">152 m²</text>
-
-      <!-- C3 -->
-      <rect class="kavling" id="k-C3" x="614" y="16" width="76" height="90" rx="3"
-        fill="var(--available)" stroke="white" stroke-width="1.5"
-        onclick="kavlingClick('C3')"/>
-      <text x="652" y="57" font-family="Inter" font-size="10" fill="white" text-anchor="middle" font-weight="700" pointer-events="none">C3</text>
-      <text x="652" y="71" font-family="Inter" font-size="8.5" fill="white" text-anchor="middle" opacity=".85" pointer-events="none">152 m²</text>
-
-      <!-- C4 -->
-      <rect class="kavling" id="k-C4" x="700" y="16" width="76" height="90" rx="3"
-        fill="var(--sold)" stroke="white" stroke-width="1.5"
-        onclick="kavlingClick('C4')"/>
-      <text x="738" y="57" font-family="Inter" font-size="10" fill="white" text-anchor="middle" font-weight="700" pointer-events="none">C4</text>
-      <text x="738" y="71" font-family="Inter" font-size="8.5" fill="white" text-anchor="middle" opacity=".85" pointer-events="none">152 m²</text>
-
-      <!-- C5 -->
-      <rect class="kavling" id="k-C5" x="784" y="16" width="60" height="90" rx="3"
-        fill="var(--available)" stroke="white" stroke-width="1.5"
-        onclick="kavlingClick('C5')"/>
-      <text x="814" y="57" font-family="Inter" font-size="10" fill="white" text-anchor="middle" font-weight="700" pointer-events="none">C5</text>
-      <text x="814" y="71" font-family="Inter" font-size="8.5" fill="white" text-anchor="middle" opacity=".85" pointer-events="none">120 m²</text>
-
-      <!-- C6 C7 row 2 -->
-      <rect class="kavling" id="k-C6" x="446" y="118" width="76" height="136" rx="3"
-        fill="var(--available)" stroke="white" stroke-width="1.5"
-        onclick="kavlingClick('C6')"/>
-      <text x="484" y="184" font-family="Inter" font-size="10" fill="white" text-anchor="middle" font-weight="700" pointer-events="none">C6</text>
-      <text x="484" y="198" font-family="Inter" font-size="8.5" fill="white" text-anchor="middle" opacity=".85" pointer-events="none">200 m²</text>
-
-      <rect class="kavling" id="k-C7" x="700" y="118" width="144" height="136" rx="3"
-        fill="var(--booked)" stroke="white" stroke-width="1.5"
-        onclick="kavlingClick('C7')"/>
-      <text x="772" y="184" font-family="Inter" font-size="10" fill="white" text-anchor="middle" font-weight="700" pointer-events="none">C7</text>
-      <text x="772" y="198" font-family="Inter" font-size="8.5" fill="white" text-anchor="middle" opacity=".85" pointer-events="none">300 m²</text>
-
-      <text x="650" y="107" font-family="Playfair Display" font-size="9" fill="white" text-anchor="middle" font-weight="700" opacity=".7" pointer-events="none">BLOK C</text>
-
-      <!-- ═══ BLOK D — bottom left ═══ -->
-      <!-- D1 -->
-      <rect class="kavling" id="k-D1" x="16" y="310" width="68" height="88" rx="3"
-        fill="var(--available)" stroke="white" stroke-width="1.5"
-        onclick="kavlingClick('D1')"/>
-      <text x="50" y="350" font-family="Inter" font-size="10" fill="white" text-anchor="middle" font-weight="700" pointer-events="none">D1</text>
-      <text x="50" y="364" font-family="Inter" font-size="8.5" fill="white" text-anchor="middle" opacity=".85" pointer-events="none">120 m²</text>
-
-      <!-- D2 -->
-      <rect class="kavling" id="k-D2" x="90" y="310" width="68" height="88" rx="3"
-        fill="var(--sold)" stroke="white" stroke-width="1.5"
-        onclick="kavlingClick('D2')"/>
-      <text x="124" y="350" font-family="Inter" font-size="10" fill="white" text-anchor="middle" font-weight="700" pointer-events="none">D2</text>
-      <text x="124" y="364" font-family="Inter" font-size="8.5" fill="white" text-anchor="middle" opacity=".85" pointer-events="none">120 m²</text>
-
-      <!-- D3 -->
-      <rect class="kavling" id="k-D3" x="16" y="406" width="68" height="88" rx="3"
-        fill="var(--booked)" stroke="white" stroke-width="1.5"
-        onclick="kavlingClick('D3')"/>
-      <text x="50" y="446" font-family="Inter" font-size="10" fill="white" text-anchor="middle" font-weight="700" pointer-events="none">D3</text>
-      <text x="50" y="460" font-family="Inter" font-size="8.5" fill="white" text-anchor="middle" opacity=".85" pointer-events="none">120 m²</text>
-
-      <!-- D4 -->
-      <rect class="kavling" id="k-D4" x="90" y="406" width="68" height="88" rx="3"
-        fill="var(--available)" stroke="white" stroke-width="1.5"
-        onclick="kavlingClick('D4')"/>
-      <text x="124" y="446" font-family="Inter" font-size="10" fill="white" text-anchor="middle" font-weight="700" pointer-events="none">D4</text>
-      <text x="124" y="460" font-family="Inter" font-size="8.5" fill="white" text-anchor="middle" opacity=".85" pointer-events="none">120 m²</text>
-
-      <!-- D5 -->
-      <rect class="kavling" id="k-D5" x="16" y="502" width="68" height="82" rx="3"
-        fill="var(--available)" stroke="white" stroke-width="1.5"
-        onclick="kavlingClick('D5')"/>
-      <text x="50" y="540" font-family="Inter" font-size="10" fill="white" text-anchor="middle" font-weight="700" pointer-events="none">D5</text>
-      <text x="50" y="554" font-family="Inter" font-size="8.5" fill="white" text-anchor="middle" opacity=".85" pointer-events="none">110 m²</text>
-
-      <!-- D6 -->
-      <rect class="kavling" id="k-D6" x="90" y="502" width="68" height="82" rx="3"
-        fill="var(--available)" stroke="white" stroke-width="1.5"
-        onclick="kavlingClick('D6')"/>
-      <text x="124" y="540" font-family="Inter" font-size="10" fill="white" text-anchor="middle" font-weight="700" pointer-events="none">D6</text>
-      <text x="124" y="554" font-family="Inter" font-size="8.5" fill="white" text-anchor="middle" opacity=".85" pointer-events="none">110 m²</text>
-
-      <text x="80" y="402" font-family="Playfair Display" font-size="9" fill="white" text-anchor="middle" font-weight="700" opacity=".7" pointer-events="none">BLOK D</text>
-
-      <!-- ═══ BLOK E — bottom center ═══ -->
-      <rect class="kavling" id="k-E1" x="196" y="310" width="72" height="100" rx="3"
-        fill="var(--available)" stroke="white" stroke-width="1.5"
-        onclick="kavlingClick('E1')"/>
-      <text x="232" y="356" font-family="Inter" font-size="10" fill="white" text-anchor="middle" font-weight="700" pointer-events="none">E1</text>
-      <text x="232" y="370" font-family="Inter" font-size="8.5" fill="white" text-anchor="middle" opacity=".85" pointer-events="none">160 m²</text>
-
-      <rect class="kavling" id="k-E2" x="276" y="310" width="72" height="100" rx="3"
-        fill="var(--sold)" stroke="white" stroke-width="1.5"
-        onclick="kavlingClick('E2')"/>
-      <text x="312" y="356" font-family="Inter" font-size="10" fill="white" text-anchor="middle" font-weight="700" pointer-events="none">E2</text>
-      <text x="312" y="370" font-family="Inter" font-size="8.5" fill="white" text-anchor="middle" opacity=".85" pointer-events="none">160 m²</text>
-
-      <rect class="kavling" id="k-E3" x="196" y="418" width="72" height="96" rx="3"
-        fill="var(--booked)" stroke="white" stroke-width="1.5"
-        onclick="kavlingClick('E3')"/>
-      <text x="232" y="464" font-family="Inter" font-size="10" fill="white" text-anchor="middle" font-weight="700" pointer-events="none">E3</text>
-      <text x="232" y="478" font-family="Inter" font-size="8.5" fill="white" text-anchor="middle" opacity=".85" pointer-events="none">160 m²</text>
-
-      <rect class="kavling" id="k-E4" x="276" y="418" width="72" height="96" rx="3"
-        fill="var(--available)" stroke="white" stroke-width="1.5"
-        onclick="kavlingClick('E4')"/>
-      <text x="312" y="464" font-family="Inter" font-size="10" fill="white" text-anchor="middle" font-weight="700" pointer-events="none">E4</text>
-      <text x="312" y="478" font-family="Inter" font-size="8.5" fill="white" text-anchor="middle" opacity=".85" pointer-events="none">160 m²</text>
-
-      <text x="312" y="406" font-family="Playfair Display" font-size="9" fill="white" text-anchor="middle" font-weight="700" opacity=".7" pointer-events="none">BLOK E</text>
-
-      <!-- ═══ BLOK F — bottom right ═══ -->
-      <rect class="kavling" id="k-F1" x="446" y="476" width="76" height="108" rx="3"
-        fill="var(--available)" stroke="white" stroke-width="1.5"
-        onclick="kavlingClick('F1')"/>
-      <text x="484" y="527" font-family="Inter" font-size="10" fill="white" text-anchor="middle" font-weight="700" pointer-events="none">F1</text>
-      <text x="484" y="541" font-family="Inter" font-size="8.5" fill="white" text-anchor="middle" opacity=".85" pointer-events="none">180 m²</text>
-
-      <rect class="kavling" id="k-F2" x="530" y="476" width="76" height="108" rx="3"
-        fill="var(--booked)" stroke="white" stroke-width="1.5"
-        onclick="kavlingClick('F2')"/>
-      <text x="568" y="527" font-family="Inter" font-size="10" fill="white" text-anchor="middle" font-weight="700" pointer-events="none">F2</text>
-      <text x="568" y="541" font-family="Inter" font-size="8.5" fill="white" text-anchor="middle" opacity=".85" pointer-events="none">180 m²</text>
-
-      <rect class="kavling" id="k-F3" x="660" y="476" width="80" height="108" rx="3"
-        fill="var(--available)" stroke="white" stroke-width="1.5"
-        onclick="kavlingClick('F3')"/>
-      <text x="700" y="527" font-family="Inter" font-size="10" fill="white" text-anchor="middle" font-weight="700" pointer-events="none">F3</text>
-      <text x="700" y="541" font-family="Inter" font-size="8.5" fill="white" text-anchor="middle" opacity=".85" pointer-events="none">180 m²</text>
-
-      <rect class="kavling" id="k-F4" x="750" y="476" width="94" height="108" rx="3"
-        fill="var(--sold)" stroke="white" stroke-width="1.5"
-        onclick="kavlingClick('F4')"/>
-      <text x="797" y="527" font-family="Inter" font-size="10" fill="white" text-anchor="middle" font-weight="700" pointer-events="none">F4</text>
-      <text x="797" y="541" font-family="Inter" font-size="8.5" fill="white" text-anchor="middle" opacity=".85" pointer-events="none">200 m²</text>
-
-      <!-- F row 2 -->
-      <rect class="kavling" id="k-F5" x="446" y="316" width="76" height="112" rx="3"
-        fill="var(--available)" stroke="white" stroke-width="1.5"
-        onclick="kavlingClick('F5')"/>
-      <text x="484" y="373" font-family="Inter" font-size="10" fill="white" text-anchor="middle" font-weight="700" pointer-events="none">F5</text>
-      <text x="484" y="387" font-family="Inter" font-size="8.5" fill="white" text-anchor="middle" opacity=".85" pointer-events="none">176 m²</text>
-
-      <rect class="kavling" id="k-F6" x="530" y="316" width="76" height="112" rx="3"
-        fill="var(--sold)" stroke="white" stroke-width="1.5"
-        onclick="kavlingClick('F6')"/>
-      <text x="568" y="373" font-family="Inter" font-size="10" fill="white" text-anchor="middle" font-weight="700" pointer-events="none">F6</text>
-      <text x="568" y="387" font-family="Inter" font-size="8.5" fill="white" text-anchor="middle" opacity=".85" pointer-events="none">176 m²</text>
-
-      <rect class="kavling" id="k-F7" x="660" y="316" width="184" height="112" rx="3"
-        fill="var(--available)" stroke="white" stroke-width="1.5"
-        onclick="kavlingClick('F7')"/>
-      <text x="752" y="373" font-family="Inter" font-size="10" fill="white" text-anchor="middle" font-weight="700" pointer-events="none">F7</text>
-      <text x="752" y="387" font-family="Inter" font-size="8.5" fill="white" text-anchor="middle" opacity=".85" pointer-events="none">250 m²</text>
-
-      <text x="700" y="465" font-family="Playfair Display" font-size="9" fill="white" text-anchor="middle" font-weight="700" opacity=".7" pointer-events="none">BLOK F</text>
-
-      <!-- Fasilitas umum -->
-      <rect x="530" y="118" width="160" height="136" rx="6" fill="#4a7fa5" opacity=".8" stroke="white" stroke-width="1.5"/>
-      <text x="610" y="178" font-family="Playfair Display" font-size="11" fill="white" text-anchor="middle" font-weight="700">FASILITAS</text>
-      <text x="610" y="194" font-family="Inter" font-size="9" fill="white" text-anchor="middle" opacity=".9">Clubhouse + Kolam</text>
-      <text x="610" y="207" font-family="Inter" font-size="9" fill="white" text-anchor="middle" opacity=".9">Renang + Taman</text>
-      <circle cx="610" cy="155" r="14" fill="white" opacity=".2"/>
-      <text x="610" y="160" font-family="Inter" font-size="16" fill="white" text-anchor="middle">🏊</text>
-
-      <!-- Entrance -->
-      <rect x="196" y="270" width="80" height="34" rx="3" fill="#c49a3c" opacity=".9"/>
-      <text x="236" y="291" font-family="Inter" font-size="9" fill="white" text-anchor="middle" font-weight="700" letter-spacing="1">PINTU MASUK</text>
-
-      <!-- Scale bar -->
-      <g transform="translate(20,580)">
-        <line x1="0" y1="0" x2="60" y2="0" stroke="#7a6e58" stroke-width="2"/>
-        <line x1="0" y1="-4" x2="0" y2="4" stroke="#7a6e58" stroke-width="2"/>
-        <line x1="60" y1="-4" x2="60" y2="4" stroke="#7a6e58" stroke-width="2"/>
-        <text x="30" y="-8" font-family="Inter" font-size="8" fill="#7a6e58" text-anchor="middle">0        50m</text>
-      </g>
-
-      </svg>
-      <div id="svgOverlay" class="svg-overlay"></div>
-    </div>
-
-    <!-- Stats Section Below SVG -->
-    <div class="stats-section" style="margin-top:2rem">
-      <h3>📊 Statistik Kavling</h3>
-      <div class="stats-grid" id="statsGrid"></div>
-    </div>
-  </div>
-</div>
-
-<!-- ─── DETAIL MODAL POPUP ─── -->
-<div class="modal-overlay" id="detailModal" onclick="closeOnBackdrop(event,'detailModal')">
-  <div class="modal">
-    <div class="modal-header">
-      <div id="detailModalHeader"></div>
-      <button class="modal-close" onclick="document.getElementById('detailModal').classList.remove('open')">×</button>
-    </div>
-    <div id="detailModalContent"></div>
-  </div>
-</div>
-
-<!-- ─── EXPORT PDF MODAL ─── -->
-<div class="modal-overlay" id="exportModal" onclick="closeOnBackdrop(event,'exportModal')">
-  <div class="modal" style="max-width:520px">
-    <div class="modal-header">
-      <div>
-        <h3>Export Dokumen PDF</h3>
-        <p>Pilih jenis laporan yang ingin diekspor</p>
-      </div>
-      <button class="modal-close" onclick="document.getElementById('exportModal').classList.remove('open')">×</button>
-    </div>
-
-    <div id="exportFormArea">
-      <div class="form-section-title">JENIS LAPORAN</div>
-      <div class="export-grid">
-        <label class="export-card selected" id="ec-all">
-          <input type="radio" name="exportType" value="all" checked onchange="setExportType('all')"/>
-          <div class="ec-icon">📋</div>
-          <div class="ec-title">Semua Kavling</div>
-          <div class="ec-desc">Rekapitulasi seluruh kavling beserta status & data pembeli</div>
-        </label>
-        <label class="export-card" id="ec-filtered">
-          <input type="radio" name="exportType" value="filtered" onchange="setExportType('filtered')"/>
-          <div class="ec-icon">🔍</div>
-          <div class="ec-title">Filter Status</div>
-          <div class="ec-desc">Export kavling berdasarkan status tertentu</div>
-        </label>
-        <label class="export-card" id="ec-single">
-          <input type="radio" name="exportType" value="single" onchange="setExportType('single')"/>
-          <div class="ec-icon">🏠</div>
-          <div class="ec-title">Detail Kavling</div>
-          <div class="ec-desc">Laporan lengkap satu kavling termasuk dokumen</div>
-        </label>
-        <label class="export-card" id="ec-stats">
-          <input type="radio" name="exportType" value="stats" onchange="setExportType('stats')"/>
-          <div class="ec-icon">📊</div>
-          <div class="ec-title">Statistik</div>
-          <div class="ec-desc">Ringkasan statistik penjualan & progres kavling</div>
-        </label>
-      </div>
-
-      <!-- Filter status chips (shown for 'filtered') -->
-      <div id="filterArea" style="display:none">
-        <div class="form-section-title">FILTER STATUS</div>
-        <div class="filter-row">
-          <div class="filter-chip on" id="chip-available" onclick="toggleChip('available')">● Tersedia</div>
-          <div class="filter-chip on" id="chip-booked"    onclick="toggleChip('booked')">● Dipesan</div>
-          <div class="filter-chip on" id="chip-sold"      onclick="toggleChip('sold')">● Terjual</div>
+<div id="canvas">
+  
+  <!-- MASTER PLAN VIEW WITH PHYSICAL SITEPLAN IMAGE -->
+  <div id="masterView">
+    <div id="masterMap">
+      <div class="master-image-wrap">
+        <img src="siteplan_kamu.jpg" alt="Master Plan Villa Bukit Tidar">
+        
+        <!-- Pintu Masuk Cluster Interaktif -->
+        <div class="cluster-gate-hitbox" onclick="openCluster('A')" style="top: 3%; left: 10%; width: 35%; height: 35%;">
+          <span class="gate-label">📍 Cluster SPACIO</span>
+        </div>
+        
+        <div class="cluster-gate-hitbox" onclick="openCluster('B')" style="top:40%; left: 50%; width: 35%; height: 35%;">
+          <span class="gate-label">📍 Cluster AZALEA</span>
+        </div>
+        
+        <div class="cluster-gate-hitbox" onclick="openCluster('C')" style="top: 58%; left: 10%; width: 50%; height: 35%;">
+          <span class="gate-label">📍 Cluster BLOCK E</span>
         </div>
       </div>
-
-      <!-- Single kavling picker -->
-      <div id="singleArea" style="display:none">
-        <div class="form-section-title">PILIH KAVLING</div>
-        <div class="form-group">
-          <select id="exportKavlingSelect">
-            <option value="">— Pilih nomor kavling —</option>
-          </select>
+    </div>
+    
+    <!-- MASTER RIGHT PANEL DETAILED INFO -->
+    <div id="detailPanel">
+      <div id="detailPanelInner">
+        <div style="margin-bottom:1.25rem">
+          <div style="font-size:.62rem;text-transform:uppercase;letter-spacing:.1em;color:var(--gold);font-weight:700;margin-bottom:.8rem">CLUSTER PROYEK</div>
+          <div class="cluster-info-card" onclick="openCluster('A')">
+            <div class="cic-name">Cluster SPACIO</div>
+            <div class="cic-meta"><span>10 kavling</span><span style="color:#6dd69a">6 tersedia</span></div>
+            <div class="cic-bar"><div class="cic-bar-fill" style="width:60%"></div></div>
+          </div>
+          <div class="cluster-info-card" onclick="openCluster('B')">
+            <div class="cic-name">Cluster AZALEA</div>
+            <div class="cic-meta"><span>8 kavling</span><span style="color:#6dd69a">4 tersedia</span></div>
+            <div class="cic-bar"><div class="cic-bar-fill" style="width:50%"></div></div>
+          </div>
+          <div class="cluster-info-card" onclick="openCluster('C')">
+            <div class="cic-name">Cluster BLOCK E</div>
+            <div class="cic-meta"><span>16 kavling</span><span style="color:#6dd69a">9 tersedia</span></div>
+            <div class="cic-bar"><div class="cic-bar-fill" style="width:56%"></div></div>
+          </div>
+        </div>
+        <div style="border-top:1px solid rgba(255,255,255,.08);padding-top:1rem">
+          <div style="font-size:.62rem;text-transform:uppercase;letter-spacing:.1em;color:var(--gold);font-weight:700;margin-bottom:.75rem">TOTAL PROYEK</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem">
+            <div style="background:rgba(61,158,104,.12);border:1px solid rgba(61,158,104,.25);border-radius:7px;padding:.7rem;text-align:center">
+              <div style="font-size:1.4rem;font-weight:700;color:#6dd69a">19</div>
+              <div style="font-size:.6rem;text-transform:uppercase;letter-spacing:.07em;color:rgba(255,255,255,.4);margin-top:.1rem">Tersedia</div>
+            </div>
+            <div style="background:rgba(212,135,14,.12);border:1px solid rgba(212,135,14,.25);border-radius:7px;padding:.7rem;text-align:center">
+              <div style="font-size:1.4rem;font-weight:700;color:#f0b44a">7</div>
+              <div style="font-size:.6rem;text-transform:uppercase;letter-spacing:.07em;color:rgba(255,255,255,.4);margin-top:.1rem">Dipesan</div>
+            </div>
+            <div style="background:rgba(184,48,48,.12);border:1px solid rgba(184,48,48,.25);border-radius:7px;padding:.7rem;text-align:center">
+              <div style="font-size:1.4rem;font-weight:700;color:#ef8080">8</div>
+              <div style="font-size:.6rem;text-transform:uppercase;letter-spacing:.07em;color:rgba(255,255,255,.4);margin-top:.1rem">Terjual</div>
+            </div>
+            <div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:7px;padding:.7rem;text-align:center">
+              <div style="font-size:1.4rem;font-weight:700;color:white">34</div>
+              <div style="font-size:.6rem;text-transform:uppercase;letter-spacing:.07em;color:rgba(255,255,255,.4);margin-top:.1rem">Total Unit</div>
+            </div>
+          </div>
         </div>
       </div>
-
-      <button class="btn-export" onclick="doExportPDF()">
-        <span>📄</span> Generate & Download PDF
-      </button>
     </div>
+  </div>
 
-    <div class="export-progress" id="exportProgress">
-      <div class="spinner"></div>
-      <p style="font-size:.85rem;color:var(--forest);font-weight:600" id="exportProgressMsg">Menyiapkan dokumen…</p>
+  <!-- CLUSTER DETAIL ELEMENT VIEW -->
+  <div id="clusterView">
+    <div id="clusterHeader">
+      <div>
+        <div id="clusterTitle">Cluster Detail</div>
+        <div id="clusterSubtitle">Klik kavling untuk memunculkan data detail properti resmi</div>
+      </div>
+      <div style="display:flex;gap:.5rem;align-items:center">
+        <button class="btn-back" onclick="goMaster()">← Master Plan</button>
+      </div>
     </div>
+    <div id="clusterBody">
+      <div id="clusterMapWrap">
+        <!-- Target gambar dinamis (.png) -->
+        <img id="clusterMapImg" src="" alt="Cluster Map Screen">
+        
+        <!-- Wadah overlay kotak warna status kaveling -->
+        <div id="dynamicKavlingLayer" style="position:absolute; inset:0; pointer-events:auto;"></div>
+      </div>
+    </div>
+    <div id="statsStrip" style="background:rgba(10,22,14,.9)"></div>
   </div>
 </div>
 
-<!-- ─── LOGIN MODAL ─── -->
-<div class="modal-overlay" id="loginModal" onclick="closeOnBackdrop(event,'loginModal')">
-  <div class="modal login-card">
+<!-- MODALS SYSTEM -->
+<div class="modal-overlay" id="kavlingModal" onclick="closeOnBdrop(event,'kavlingModal')">
+  <div class="modal" style="max-width:660px">
     <div class="modal-header">
       <div>
-        <h3>Login Admin</h3>
-        <p>Masuk untuk mengelola data siteplan</p>
+        <div class="modal-title" id="kvm-title">Kavling A1</div>
+        <div class="modal-sub" id="kvm-sub">Cluster · Blok A</div>
       </div>
-      <button class="modal-close" onclick="closeLoginModal()">×</button>
+      <button class="modal-close" onclick="closeModal('kavlingModal')">×</button>
     </div>
-    <div class="form-group">
-      <label>USERNAME</label>
-      <input type="text" id="loginUser" placeholder="admin" value="admin"/>
+    <div id="kvm-status-badge" class="status-badge sb-available" style="margin-bottom:1rem">● Tersedia</div>
+    <div class="kv-popup-grid" id="kvm-info-grid"></div>
+    <div id="kvm-buyer-section" style="display:none">
+      <div class="form-section">Data Pembeli Resmi</div>
+      <div class="popup-buyer-section" id="kvm-buyer-content"></div>
     </div>
-    <div class="form-group">
-      <label>PASSWORD</label>
-      <input type="password" id="loginPass" placeholder="••••••••" value="admin123"
-        onkeydown="if(event.key==='Enter')doLogin()"/>
+    <div id="kvm-doc-section" style="display:none">
+      <div class="form-section">Lampiran Dokumen</div>
+      <div class="popup-doc-grid">
+        <div class="popup-doc-box">
+          <div class="popup-doc-title">🪪 KTP Pembeli</div>
+          <div id="kvm-ktp-wrap"></div>
+        </div>
+        <div class="popup-doc-box">
+          <div class="popup-doc-title">👨‍👩‍👧 Kartu Keluarga</div>
+          <div id="kvm-kk-wrap"></div>
+        </div>
+      </div>
     </div>
+    <div class="popup-actions" id="kvm-actions"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="loginModal" onclick="closeOnBdrop(event,'loginModal')">
+  <div class="modal login-modal">
+    <div class="modal-header">
+      <div><div class="modal-title">Login Admin</div><div class="modal-sub">Masuk untuk mengelola data properti</div></div>
+      <button class="modal-close" onclick="closeModal('loginModal')">×</button>
+    </div>
+    <div class="form-group"><label>Username</label><input type="text" id="loginUser" value="admin"/></div>
+    <div class="form-group"><label>Password</label><input type="password" id="loginPass" value="admin123" onkeydown="if(event.key==='Enter')doLogin()"/></div>
     <button class="btn-submit" onclick="doLogin()">Masuk</button>
-    <p style="font-size:.72rem;color:var(--gray);margin-top:.75rem;text-align:center;">
-      Demo: username <b>admin</b> / password <b>admin123</b>
-    </p>
+    <p style="font-size:.7rem;color:rgba(255,255,255,.35);text-align:center;margin-top:.75rem">Demo: admin / admin123</p>
   </div>
 </div>
 
-<!-- ─── ADMIN KAVLING MODAL ─── -->
-<div class="modal-overlay" id="adminModal" onclick="closeOnBackdrop(event,'adminModal')">
+<div class="modal-overlay" id="adminModal" onclick="closeOnBdrop(event,'adminModal')">
   <div class="modal">
     <div class="modal-header">
-      <div>
-        <h3 id="adminModalTitle">Edit Kavling</h3>
-        <p id="adminModalSub">Isi data kavling</p>
-      </div>
-      <button class="modal-close" onclick="document.getElementById('adminModal').classList.remove('open')">×</button>
+      <div><div class="modal-title" id="adminModalTitle">Edit Data Kavling</div><div class="modal-sub" id="adminModalSub">Formulir Update Database</div></div>
+      <button class="modal-close" onclick="closeModal('adminModal')">×</button>
     </div>
-
-    <div class="form-section-title">DATA KAVLING</div>
+    <div class="form-section">Data Fisik Properti</div>
     <div class="form-row">
-      <div class="form-group">
-        <label>NO. KAVLING</label>
-        <input type="text" id="f-id" readonly style="background:#eee"/>
-      </div>
-      <div class="form-group">
-        <label>STATUS</label>
+      <div class="form-group"><label>No. Kavling</label><input type="text" id="f-id" readonly/></div>
+      <div class="form-group"><label>Status</label>
         <select id="f-status">
           <option value="available">Tersedia</option>
           <option value="booked">Dipesan</option>
@@ -865,1103 +468,765 @@
       </div>
     </div>
     <div class="form-row">
-      <div class="form-group">
-        <label>LUAS TANAH (m²)</label>
-        <input type="number" id="f-luas" placeholder="120"/>
-      </div>
-      <div class="form-group">
-        <label>HARGA (Rp)</label>
-        <input type="number" id="f-harga" placeholder="500000000"/>
-      </div>
+      <div class="form-group"><label>Luas (m²)</label><input type="number" id="f-luas"/></div>
+      <div class="form-group"><label>Harga Standar (Rp)</label><input type="number" id="f-harga"/></div>
     </div>
-    <div class="form-group">
-      <label>TIPE RUMAH</label>
+    <div class="form-group"><label>Tipe Bangunan</label>
       <select id="f-tipe">
-        <option value="">— Pilih tipe —</option>
+        <option value="">— Pilih Tipe —</option>
         <option value="36/72">36/72</option>
         <option value="45/90">45/90</option>
         <option value="54/120">54/120</option>
         <option value="72/144">72/144</option>
-        <option value="Kavling Tanah">Kavling Tanah</option>
+        <option value="Kavling Tanah">Kavling Tanah Kosong</option>
       </select>
     </div>
 
-    <div class="form-section-title">DATA PEMBELI</div>
-    <div class="form-group">
-      <label>NAMA PEMBELI</label>
-      <input type="text" id="f-nama" placeholder="Nama lengkap sesuai KTP"/>
+    <div class="form-section">Data Identitas Pembeli</div>
+    <div class="form-group"><label>Nama Lengkap Pembeli</label><input type="text" id="f-nama"/></div>
+    <div class="form-group"><label>Alamat Tinggal</label><input type="text" id="f-alamat"/></div>
+    <div class="form-row">
+      <div class="form-group"><label>No. KTP / SIM</label><input type="text" id="f-noktp"/></div>
+      <div class="form-group"><label>No. HP Aktif</label><input type="text" id="f-hp"/></div>
     </div>
     <div class="form-row">
-      <div class="form-group">
-        <label>NO. SPR</label>
-        <input type="text" id="f-nospr" placeholder="SPR-2024-001"/>
-      </div>
-      <div class="form-group">
-        <label>METODE BAYAR</label>
+      <div class="form-group"><label>No. SPR Terbit</label><input type="text" id="f-nospr"/></div>
+      <div class="form-group"><label>Metode Transaksi</label>
         <select id="f-metode">
           <option value="">— Pilih —</option>
-          <option value="Cash">Cash</option>
-          <option value="KPR">KPR</option>
-          <option value="Cash Tempo">Cash Tempo</option>
+          <option value="Cash">Cash / Tunai Keras</option>
+          <option value="KPR">KPR Perbankan</option>
+          <option value="Cash Tempo">Cash Tempo / Bertahap</option>
         </select>
       </div>
     </div>
-    <div class="form-group">
-      <label>JUMLAH BAYAR (Rp)</label>
-      <input type="number" id="f-jumlah" placeholder="0"/>
+    <div class="form-row">
+      <div class="form-group"><label>Harga Deal Akhir (Rp)</label><input type="number" id="f-jumlah"/></div>
+      <div class="form-group"><label>Nilai Uang Muka / DP (Rp)</label><input type="number" id="f-dp"/></div>
     </div>
-    <div class="form-group">
-      <label>TANGGAL AKAD</label>
-      <input type="date" id="f-tanggal"/>
+    <div class="form-row">
+      <div class="form-group"><label>Kelebihan Tanah (Rp)</label><input type="number" id="f-kelebihan"/></div>
+      <div class="form-group"><label>Discount / Potongan (Rp)</label><input type="number" id="f-discount"/></div>
     </div>
+    <div class="form-row">
+      <div class="form-group"><label>Tanggal Akad / SPR</label><input type="date" id="f-tanggal"/></div>
+      <div class="form-group"><label>Penambahan Mutu (Rp)</label><input type="number" id="f-mutu"/></div>
+    </div>
+    <div class="form-group"><label>Catatan Khusus Tambahan</label><textarea id="f-catatan"></textarea></div>
 
-    <div class="form-section-title">DOKUMEN</div>
+    <div class="form-section">Upload Dokumen Legalitas (Gambar)</div>
     <div class="form-row">
       <div class="form-group">
-        <label>GAMBAR KTP</label>
-        <div class="upload-zone" id="zone-ktp">
-          <input type="file" accept="image/*" onchange="handleUpload(event,'ktp')"/>
-          <div class="upload-icon">🪪</div>
-          <p>Upload foto KTP</p>
-          <div class="upload-preview" id="prev-ktp"><img id="img-ktp" src="" alt="KTP"/></div>
+        <label>Foto Dokumen KTP</label>
+        <div class="upload-zone" onclick="document.getElementById('file-ktp').click()">
+          <input type="file" id="file-ktp" accept="image/*" style="display:none" onchange="handleUpload(event,'ktp')"/>
+          <div class="uz-icon">🪪</div>
+          <p><strong>Klik Area</strong> untuk upload KTP</p>
+          <div class="upload-preview" id="prev-ktp">
+            <img id="img-ktp" src="" alt="KTP"/>
+            <div class="up-name" id="name-ktp"></div>
+          </div>
+        </div>
+        <div id="clear-ktp" style="display:none;text-align:right;margin-top:.25rem">
+          <span class="up-clear" onclick="clearUpload('ktp')">✕ Hapus Berkas</span>
         </div>
       </div>
       <div class="form-group">
-        <label>GAMBAR SPR</label>
-        <div class="upload-zone" id="zone-spr">
-          <input type="file" accept="image/*" onchange="handleUpload(event,'spr')"/>
-          <div class="upload-icon">📄</div>
-          <p>Upload foto SPR</p>
-          <div class="upload-preview" id="prev-spr"><img id="img-spr" src="" alt="SPR"/></div>
+        <label>Foto Kartu Keluarga (KK)</label>
+        <div class="upload-zone" onclick="document.getElementById('file-kk').click()">
+          <input type="file" id="file-kk" accept="image/*" style="display:none" onchange="handleUpload(event,'kk')"/>
+          <div class="uz-icon">👨‍👩‍👧</div>
+          <p><strong>Klik Area</strong> untuk upload KK</p>
+          <div class="upload-preview" id="prev-kk">
+            <img id="img-kk" src="" alt="KK"/>
+            <div class="up-name" id="name-kk"></div>
+          </div>
+        </div>
+        <div id="clear-kk" style="display:none;text-align:right;margin-top:.25rem">
+          <span class="up-clear" onclick="clearUpload('kk')">✕ Hapus Berkas</span>
         </div>
       </div>
     </div>
-
-    <div class="form-group">
-      <label>CATATAN</label>
-      <textarea id="f-catatan" placeholder="Catatan tambahan..."></textarea>
-    </div>
-
-    <button class="btn-submit" onclick="saveKavling()">💾 Simpan Data</button>
+    <button class="btn-submit" onclick="saveKavling()">💾 Simpan & Sinkronisasi Data</button>
   </div>
 </div>
 
-<!-- ─── IMAGE VIEWER ─── -->
-<div class="img-modal-overlay" id="imgModal" onclick="document.getElementById('imgModal').classList.remove('open')">
-  <button class="img-modal-close">×</button>
-  <img id="imgModalSrc" src="" alt=""/>
-</div>
-
-<!-- Toast -->
 <div class="toast" id="toast"></div>
 
 <script>
-// ═══════════════════════════════════════════════════
-// DATA STORE
-// ═══════════════════════════════════════════════════
-const kavlingData = {
-  A1: { id:'A1', blok:'A', luas:120, harga:480000000, tipe:'36/72', status:'available', nama:'', nospr:'', metode:'', jumlah:0, tanggal:'', catatan:'', imgKtp:'', imgSpr:'' },
-  A2: { id:'A2', blok:'A', luas:120, harga:490000000, tipe:'45/90', status:'booked',    nama:'Budi Santoso', nospr:'SPR-2024-001', metode:'KPR', jumlah:150000000, tanggal:'2024-03-15', catatan:'Proses verifikasi bank', imgKtp:'', imgSpr:'' },
-  A3: { id:'A3', blok:'A', luas:120, harga:495000000, tipe:'45/90', status:'sold',      nama:'Dewi Rahayu',  nospr:'SPR-2024-002', metode:'Cash', jumlah:495000000, tanggal:'2024-01-20', catatan:'Lunas', imgKtp:'', imgSpr:'' },
-  A4: { id:'A4', blok:'A', luas:120, harga:488000000, tipe:'36/72', status:'available', nama:'', nospr:'', metode:'', jumlah:0, tanggal:'', catatan:'', imgKtp:'', imgSpr:'' },
-  B1: { id:'B1', blok:'B', luas:144, harga:576000000, tipe:'54/120', status:'available', nama:'', nospr:'', metode:'', jumlah:0, tanggal:'', catatan:'', imgKtp:'', imgSpr:'' },
-  B2: { id:'B2', blok:'B', luas:144, harga:580000000, tipe:'54/120', status:'booked', nama:'Agus Purnomo', nospr:'SPR-2024-003', metode:'Cash Tempo', jumlah:50000000, tanggal:'2024-04-01', catatan:'Booking, proses SPR', imgKtp:'', imgSpr:'' },
-  B3: { id:'B3', blok:'B', luas:160, harga:640000000, tipe:'72/144', status:'sold',     nama:'Siti Nurhayati', nospr:'SPR-2023-015', metode:'KPR', jumlah:640000000, tanggal:'2023-11-05', catatan:'', imgKtp:'', imgSpr:'' },
-  B4: { id:'B4', blok:'B', luas:160, harga:645000000, tipe:'72/144', status:'available', nama:'', nospr:'', metode:'', jumlah:0, tanggal:'', catatan:'', imgKtp:'', imgSpr:'' },
-  C1: { id:'C1', blok:'C', luas:152, harga:608000000, tipe:'54/120', status:'available', nama:'', nospr:'', metode:'', jumlah:0, tanggal:'', catatan:'', imgKtp:'', imgSpr:'' },
-  C2: { id:'C2', blok:'C', luas:152, harga:612000000, tipe:'54/120', status:'booked',   nama:'Hendro Wijaya', nospr:'SPR-2024-005', metode:'KPR', jumlah:100000000, tanggal:'2024-05-10', catatan:'', imgKtp:'', imgSpr:'' },
-  C3: { id:'C3', blok:'C', luas:152, harga:610000000, tipe:'54/120', status:'available', nama:'', nospr:'', metode:'', jumlah:0, tanggal:'', catatan:'', imgKtp:'', imgSpr:'' },
-  C4: { id:'C4', blok:'C', luas:152, harga:618000000, tipe:'72/144', status:'sold',     nama:'Rini Susanti',  nospr:'SPR-2023-022', metode:'Cash', jumlah:618000000, tanggal:'2023-12-01', catatan:'', imgKtp:'', imgSpr:'' },
-  C5: { id:'C5', blok:'C', luas:120, harga:490000000, tipe:'36/72', status:'available', nama:'', nospr:'', metode:'', jumlah:0, tanggal:'', catatan:'', imgKtp:'', imgSpr:'' },
-  C6: { id:'C6', blok:'C', luas:200, harga:900000000, tipe:'Kavling Tanah', status:'available', nama:'', nospr:'', metode:'', jumlah:0, tanggal:'', catatan:'', imgKtp:'', imgSpr:'' },
-  C7: { id:'C7', blok:'C', luas:300, harga:1200000000, tipe:'Kavling Tanah', status:'booked', nama:'PT Maju Jaya', nospr:'SPR-2024-007', metode:'Cash', jumlah:200000000, tanggal:'2024-06-01', catatan:'Nego harga', imgKtp:'', imgSpr:'' },
-  D1: { id:'D1', blok:'D', luas:120, harga:480000000, tipe:'36/72', status:'available', nama:'', nospr:'', metode:'', jumlah:0, tanggal:'', catatan:'', imgKtp:'', imgSpr:'' },
-  D2: { id:'D2', blok:'D', luas:120, harga:485000000, tipe:'36/72', status:'sold',     nama:'Bambang Eko',  nospr:'SPR-2023-030', metode:'KPR', jumlah:485000000, tanggal:'2023-09-14', catatan:'', imgKtp:'', imgSpr:'' },
-  D3: { id:'D3', blok:'D', luas:120, harga:488000000, tipe:'45/90', status:'booked',   nama:'Yunita Sari',  nospr:'SPR-2024-008', metode:'Cash Tempo', jumlah:80000000, tanggal:'2024-05-20', catatan:'DP 1', imgKtp:'', imgSpr:'' },
-  D4: { id:'D4', blok:'D', luas:120, harga:486000000, tipe:'45/90', status:'available', nama:'', nospr:'', metode:'', jumlah:0, tanggal:'', catatan:'', imgKtp:'', imgSpr:'' },
-  D5: { id:'D5', blok:'D', luas:110, harga:462000000, tipe:'36/72', status:'available', nama:'', nospr:'', metode:'', jumlah:0, tanggal:'', catatan:'', imgKtp:'', imgSpr:'' },
-  D6: { id:'D6', blok:'D', luas:110, harga:464000000, tipe:'36/72', status:'available', nama:'', nospr:'', metode:'', jumlah:0, tanggal:'', catatan:'', imgKtp:'', imgSpr:'' },
-  E1: { id:'E1', blok:'E', luas:160, harga:640000000, tipe:'54/120', status:'available', nama:'', nospr:'', metode:'', jumlah:0, tanggal:'', catatan:'', imgKtp:'', imgSpr:'' },
-  E2: { id:'E2', blok:'E', luas:160, harga:650000000, tipe:'72/144', status:'sold',     nama:'Anton Hidayat', nospr:'SPR-2024-009', metode:'KPR', jumlah:650000000, tanggal:'2024-02-28', catatan:'', imgKtp:'', imgSpr:'' },
-  E3: { id:'E3', blok:'E', luas:160, harga:645000000, tipe:'54/120', status:'booked', nama:'Yusuf Rahman',  nospr:'SPR-2024-010', metode:'Cash', jumlah:100000000, tanggal:'2024-06-10', catatan:'Waiting list', imgKtp:'', imgSpr:'' },
-  E4: { id:'E4', blok:'E', luas:160, harga:648000000, tipe:'54/120', status:'available', nama:'', nospr:'', metode:'', jumlah:0, tanggal:'', catatan:'', imgKtp:'', imgSpr:'' },
-  F1: { id:'F1', blok:'F', luas:180, harga:720000000, tipe:'72/144', status:'available', nama:'', nospr:'', metode:'', jumlah:0, tanggal:'', catatan:'', imgKtp:'', imgSpr:'' },
-  F2: { id:'F2', blok:'F', luas:180, harga:724000000, tipe:'72/144', status:'booked',   nama:'Sri Wahyuni',  nospr:'SPR-2024-011', metode:'KPR', jumlah:150000000, tanggal:'2024-04-25', catatan:'', imgKtp:'', imgSpr:'' },
-  F3: { id:'F3', blok:'F', luas:180, harga:722000000, tipe:'72/144', status:'available', nama:'', nospr:'', metode:'', jumlah:0, tanggal:'', catatan:'', imgKtp:'', imgSpr:'' },
-  F4: { id:'F4', blok:'F', luas:200, harga:860000000, tipe:'Kavling Tanah', status:'sold', nama:'Hendra Kusuma', nospr:'SPR-2023-040', metode:'Cash', jumlah:860000000, tanggal:'2023-10-10', catatan:'', imgKtp:'', imgSpr:'' },
-  F5: { id:'F5', blok:'F', luas:176, harga:704000000, tipe:'72/144', status:'available', nama:'', nospr:'', metode:'', jumlah:0, tanggal:'', catatan:'', imgKtp:'', imgSpr:'' },
-  F6: { id:'F6', blok:'F', luas:176, harga:708000000, tipe:'72/144', status:'sold',     nama:'Lia Permata',  nospr:'SPR-2023-041', metode:'Cash Tempo', jumlah:708000000, tanggal:'2023-11-22', catatan:'', imgKtp:'', imgSpr:'' },
-  F7: { id:'F7', blok:'F', luas:250, harga:1000000000, tipe:'Kavling Tanah', status:'available', nama:'', nospr:'', metode:'', jumlah:0, tanggal:'', catatan:'', imgKtp:'', imgSpr:'' },
+// ══════════════════════════════════════════════════════════════════════
+// DATA SYSTEM & DETAILED PERCENTAGE COORDINATES FOR MAP PNG OVERLAYS
+// ══════════════════════════════════════════════════════════════════════
+const CLUSTERS = {
+  A: {
+    name: 'Cluster SPACIO', imageFile: 'SPACIO.png', color: '#3d9e68', subtitle: 'Kavling Hunian Modern Premium',
+    kavling: {
+      // Baris Atas (Contoh koordinat denah gambar SPACIO)
+      A1:  {id:'A1',  top:22, left:8,  w:13, h:24, blok:'A',luas:120,harga:480000000,tipe:'36/72',  status:'available',nama:'',alamat:'',noktp:'',hp:'',nospr:'',metode:'',jumlah:0,dp:0,kelebihan:0,discount:0,mutu:0,tanggal:'',catatan:'',imgKtp:'',imgKk:''},
+      A2:  {id:'A2',  top:22, left:23, w:13, h:24, blok:'A',luas:120,harga:490000000,tipe:'45/90',  status:'booked',   nama:'Budi Santoso',alamat:'Jl. Mawar No.5 Malang',noktp:'3507123456789001',hp:'08123456789',nospr:'SPR-2024-001',metode:'KPR',jumlah:490000000,dp:98000000,kelebihan:0,discount:5000000,mutu:0,tanggal:'2024-03-15',catatan:'Proses berkas perbankan',imgKtp:'',imgKk:''},
+      A3:  {id:'A3',  top:22, left:38, w:13, h:24, blok:'A',luas:120,harga:495000000,tipe:'45/90',  status:'sold',     nama:'Dewi Rahayu', alamat:'Jl. Kenanga No.12 Batu',noktp:'3507987654321002',hp:'08234567890',nospr:'SPR-2024-002',metode:'Cash',jumlah:495000000,dp:495000000,kelebihan:0,discount:0,mutu:0,tanggal:'2024-01-20',catatan:'Lunas Valid',imgKtp:'',imgKk:''},
+      A4:  {id:'A4',  top:22, left:53, w:13, h:24, blok:'A',luas:120,harga:488000000,tipe:'36/72',  status:'available',nama:'',alamat:'',noktp:'',hp:'',nospr:'',metode:'',jumlah:0,dp:0,kelebihan:0,discount:0,mutu:0,tanggal:'',catatan:'',imgKtp:'',imgKk:''},
+      A5:  {id:'A5',  top:22, left:68, w:13, h:24, blok:'A',luas:120,harga:485000000,tipe:'36/72',  status:'available',nama:'',alamat:'',noktp:'',hp:'',nospr:'',metode:'',jumlah:0,dp:0,kelebihan:0,discount:0,mutu:0,tanggal:'',catatan:'',imgKtp:'',imgKk:''},
+      // Baris Bawah
+      A6:  {id:'A6',  top:54, left:8,  w:13, h:24, blok:'A',luas:130,harga:520000000,tipe:'45/90',  status:'sold',     nama:'Hendra Prasetyo',alamat:'Jl. Dahlia No.8 Malang',noktp:'3507456789012003',hp:'08345678901',nospr:'SPR-2023-010',metode:'Cash',jumlah:520000000,dp:520000000,kelebihan:0,discount:0,mutu:0,tanggal:'2023-10-05',catatan:'',imgKtp:'',imgKk:''},
+      A7:  {id:'A7',  top:54, left:23, w:13, h:24, blok:'A',luas:130,harga:522000000,tipe:'45/90',  status:'available',nama:'',alamat:'',noktp:'',hp:'',nospr:'',metode:'',jumlah:0,dp:0,kelebihan:0,discount:0,mutu:0,tanggal:'',catatan:'',imgKtp:'',imgKk:''},
+      A8:  {id:'A8',  top:54, left:38, w:13, h:24, blok:'A',luas:130,harga:525000000,tipe:'54/120', status:'booked',   nama:'Rina Wulandari',alamat:'Jl. Melati No.3 Kepanjen',noktp:'3507111222333004',hp:'08456789012',nospr:'SPR-2024-008',metode:'Cash Tempo',jumlah:525000000,dp:80000000,kelebihan:0,discount:0,mutu:0,tanggal:'2024-05-12',catatan:'Titipan Termin 1',imgKtp:'',imgKk:''},
+      A9:  {id:'A9',  top:54, left:53, w:13, h:24, blok:'A',luas:120,harga:484000000,tipe:'36/72',  status:'available',nama:'',alamat:'',noktp:'',hp:'',nospr:'',metode:'',jumlah:0,dp:0,kelebihan:0,discount:0,mutu:0,tanggal:'',catatan:'',imgKtp:'',imgKk:''},
+      A10: {id:'A10', top:54, left:68, w:13, h:24, blok:'A',luas:120,harga:486000000,tipe:'36/72',  status:'available',nama:'',alamat:'',noktp:'',hp:'',nospr:'',metode:'',jumlah:0,dp:0,kelebihan:0,discount:0,mutu:0,tanggal:'',catatan:'',imgKtp:'',imgKk:''},
+    }
+  },
+  B: {
+    name: 'Cluster AZALEA', imageFile: 'AZALEA.png', color: '#407ea0', subtitle: 'Kavling Premium Eksklusif',
+    kavling: {
+      // Baris Atas (Contoh koordinat denah gambar AZALEA)
+      B1: {id:'B1', top:25, left:10, w:16, h:22, blok:'B',luas:144,harga:576000000,tipe:'54/120',status:'available',nama:'',alamat:'',noktp:'',hp:'',nospr:'',metode:'',jumlah:0,dp:0,kelebihan:0,discount:0,mutu:0,tanggal:'',catatan:'',imgKtp:'',imgKk:''},
+      B2: {id:'B2', top:25, left:28, w:16, h:22, blok:'B',luas:144,harga:582000000,tipe:'54/120',status:'sold',     nama:'Agus Purnomo',  alamat:'Jl. Anggrek No.15 Malang',noktp:'3507222333444005',hp:'08567890123',nospr:'SPR-2024-003',metode:'Cash Tempo',jumlah:582000000,dp:582000000,kelebihan:0,discount:0,mutu:0,tanggal:'2024-02-10',catatan:'',imgKtp:'',imgKk:''},
+      B3: {id:'B3', top:25, left:46, w:16, h:22, blok:'B',luas:152,harga:608000000,tipe:'54/120',status:'booked',   nama:'Hendro Wijaya', alamat:'Jl. Flamboyan No.7 Batu',noktp:'3507333444555006',hp:'08678901234',nospr:'SPR-2024-005',metode:'KPR',jumlah:608000000,dp:100000000,kelebihan:0,discount:8000000,mutu:0,tanggal:'2024-05-10',catatan:'',imgKtp:'',imgKk:''},
+      B4: {id:'B4', top:25, left:64, w:16, h:22, blok:'B',luas:152,harga:612000000,tipe:'72/144',status:'available',nama:'',alamat:'',noktp:'',hp:'',nospr:'',metode:'',jumlah:0,dp:0,kelebihan:0,discount:0,mutu:0,tanggal:'',catatan:'',imgKtp:'',imgKk:''},
+      // Baris Bawah
+      B5: {id:'B5', top:55, left:10, w:16, h:22, blok:'B',luas:160,harga:640000000,tipe:'72/144',status:'available',nama:'',alamat:'',noktp:'',hp:'',nospr:'',metode:'',jumlah:0,dp:0,kelebihan:0,discount:0,mutu:0,tanggal:'',catatan:'',imgKtp:'',imgKk:''},
+      B6: {id:'B6', top:55, left:28, w:16, h:22, blok:'B',luas:144,harga:578000000,tipe:'54/120',status:'sold',     nama:'Siti Nurhayati',alamat:'Jl. Bougenville No.2 Malang',noktp:'3507444555666007',hp:'08789012345',nospr:'SPR-2023-015',metode:'KPR',jumlah:578000000,dp:578000000,kelebihan:0,discount:0,mutu:0,tanggal:'2023-11-05',catatan:'',imgKtp:'',imgKk:''},
+      B7: {id:'B7', top:55, left:46, w:16, h:22, blok:'B',luas:144,harga:580000000,tipe:'54/120',status:'available',nama:'',alamat:'',noktp:'',hp:'',nospr:'',metode:'',jumlah:0,dp:0,kelebihan:0,discount:0,mutu:0,tanggal:'',catatan:'',imgKtp:'',imgKk:''},
+      B8: {id:'B8', top:55, left:64, w:16, h:22, blok:'B',luas:240,harga:960000000,tipe:'Kavling Tanah',status:'booked',nama:'PT Maju Jaya',alamat:'Jl. Raya Industri No.50 Malang',noktp:'-',hp:'0341-123456',nospr:'SPR-2024-007',metode:'Cash',jumlah:960000000,dp:200000000,kelebihan:0,discount:50000000,mutu:0,tanggal:'2024-06-01',catatan:'Nego Luas Aktual',imgKtp:'',imgKk:''},
+    }
+  },
+  C: {
+    name: 'Cluster BLOCK E', imageFile: 'BLOCK E.JPG', color: '#b83030', subtitle: 'Kavling Strategis Blok E',
+    kavling: {
+      // Kisi Baris 1 (Contoh koordinat denah gambar BLOCK E)
+      C1:  {id:'C1',  top:15, left:6,  w:10, h:35, blok:'C',luas:180,harga:720000000,tipe:'72/144',status:'available',nama:'',alamat:'',noktp:'',hp:'',nospr:'',metode:'',jumlah:0,dp:0,kelebihan:0,discount:0,mutu:0,tanggal:'',catatan:'',imgKtp:'',imgKk:''},
+      C2:  {id:'C2',  top:15, left:18, w:10, h:35, blok:'C',luas:180,harga:724000000,tipe:'72/144',status:'sold',     nama:'Bambang Eko',   alamat:'Jl. Teratai No.11 Malang',noktp:'3507555666777008',hp:'08890123456',nospr:'SPR-2023-030',metode:'KPR',jumlah:724000000,dp:724000000,kelebihan:0,discount:0,mutu:0,tanggal:'2023-09-14',catatan:'',imgKtp:'',imgKk:''},
+      C3:  {id:'C3',  top:15, left:30, w:10, h:35, blok:'C',luas:180,harga:726000000,tipe:'72/144',status:'available',nama:'',alamat:'',noktp:'',hp:'',nospr:'',metode:'',jumlah:0,dp:0,kelebihan:0,discount:0,mutu:0,tanggal:'',catatan:'',imgKtp:'',imgKk:''},
+      C4:  {id:'C4',  top:15, left:42, w:10, h:35, blok:'C',luas:200,harga:800000000,tipe:'Kavling Tanah',status:'booked',nama:'Yunita Sari',alamat:'Jl. Pahlawan No.4 Malang',noktp:'3507666777888009',hp:'08901234567',nospr:'SPR-2024-011',metode:'Cash Tempo',jumlah:800000000,dp:100000000,kelebihan:0,discount:0,mutu:0,tanggal:'2024-06-15',catatan:'',imgKtp:'',imgKk:''},
+      C5:  {id:'C5',  top:15, left:54, w:10, h:35, blok:'C',luas:200,harga:810000000,tipe:'Kavling Tanah',status:'available',nama:'',alamat:'',noktp:'',hp:'',nospr:'',metode:'',jumlah:0,dp:0,kelebihan:0,discount:0,mutu:0,tanggal:'',catatan:'',imgKtp:'',imgKk:''},
+      C6:  {id:'C6',  top:15, left:66, w:10, h:35, blok:'C',luas:200,harga:812000000,tipe:'Kavling Tanah',status:'sold',     nama:'Rini Susanti', alamat:'Jl. Merdeka No.22 Batu',noktp:'3507777888999010',hp:'08112345678',nospr:'SPR-2023-022',metode:'Cash',jumlah:812000000,dp:812000000,kelebihan:0,discount:0,mutu:0,tanggal:'2023-12-01',catatan:'',imgKtp:'',imgKk:''},
+      C7:  {id:'C7',  top:15, left:78, w:10, h:35, blok:'C',luas:180,harga:722000000,tipe:'72/144',status:'booked',   nama:'Sri Wahyuni',  alamat:'Jl. Diponegoro No.9 Malang',noktp:'3507888999000011',hp:'08223456789',nospr:'SPR-2024-013',metode:'KPR',jumlah:722000000,dp:150000000,kelebihan:0,discount:10000000,mutu:0,tanggal:'2024-04-25',catatan:'',imgKtp:'',imgKk:''},
+      C8:  {id:'C8',  top:15, left:90, w:8,  h:35, blok:'C',luas:180,harga:720000000,tipe:'72/144',status:'available',nama:'',alamat:'',noktp:'',hp:'',nospr:'',metode:'',jumlah:0,dp:0,kelebihan:0,discount:0,mutu:0,tanggal:'',catatan:'',imgKtp:'',imgKk:''},
+      // Kisi Baris 2
+      C9:  {id:'C9',  top:55, left:6,  w:10, h:35, blok:'C',luas:200,harga:820000000,tipe:'Kavling Tanah',status:'booked',nama:'Anton Hidayat',alamat:'Jl. Sudirman No.18 Malang',noktp:'3507000111222012',hp:'08334567890',nospr:'SPR-2024-014',metode:'Cash',jumlah:820000000,dp:200000000,kelebihan:0,discount:0,mutu:0,tanggal:'2024-05-20',catatan:'Waiting list',imgKtp:'',imgKk:''},
+      C10: {id:'C10', top:55, left:18, w:10, h:35, blok:'C',luas:200,harga:822000000,tipe:'Kavling Tanah',status:'sold',     nama:'Hendra Kusuma',alamat:'Jl. Basuki Rahmat No.6 Malang',noktp:'3507112233445013',hp:'08445678901',nospr:'SPR-2023-040',metode:'Cash',jumlah:822000000,dp:822000000,kelebihan:0,discount:0,mutu:0,tanggal:'2023-10-10',catatan:'',imgKtp:'',imgKk:''},
+      C11: {id:'C11', top:55, left:30, w:10, h:35, blok:'C',luas:180,harga:724000000,tipe:'72/144',status:'available',nama:'',alamat:'',noktp:'',hp:'',nospr:'',metode:'',jumlah:0,dp:0,kelebihan:0,discount:0,mutu:0,tanggal:'',catatan:'',imgKtp:'',imgKk:''},
+      C12: {id:'C12', top:55, left:42, w:10, h:35, blok:'C',luas:180,harga:726000000,tipe:'72/144',status:'available',nama:'',alamat:'',noktp:'',hp:'',nospr:'',metode:'',jumlah:0,dp:0,kelebihan:0,discount:0,mutu:0,tanggal:'',catatan:'',imgKtp:'',imgKk:''},
+      C13: {id:'C13', top:55, left:54, w:10, h:35, blok:'C',luas:200,harga:810000000,tipe:'Kavling Tanah',status:'available',nama:'',alamat:'',noktp:'',hp:'',nospr:'',metode:'',jumlah:0,dp:0,kelebihan:0,discount:0,mutu:0,tanggal:'',catatan:'',imgKtp:'',imgKk:''},
+      C14: {id:'C14', top:55, left:66, w:10, h:35, blok:'C',luas:200,harga:812000000,tipe:'Kavling Tanah',status:'available',nama:'',alamat:'',noktp:'',hp:'',nospr:'',metode:'',jumlah:0,dp:0,kelebihan:0,discount:0,mutu:0,tanggal:'',catatan:'',imgKtp:'',imgKk:''},
+      C15: {id:'C15', top:55, left:78, w:10, h:35, blok:'C',luas:180,harga:720000000,tipe:'72/144',status:'sold',     nama:'Lia Permata',  alamat:'Jl. Ahmad Yani No.14 Batu',noktp:'3507223344556014',hp:'08556789012',nospr:'SPR-2023-041',metode:'Cash Tempo',jumlah:720000000,dp:720000000,kelebihan:0,discount:0,mutu:0,tanggal:'2023-11-22',catatan:'',imgKtp:'',imgKk:''},
+      C16: {id:'C16', top:55, left:90, w:8,  h:35, blok:'C',luas:180,harga:722000000,tipe:'72/144',status:'available',nama:'',alamat:'',noktp:'',hp:'',nospr:'',metode:'',jumlah:0,dp:0,kelebihan:0,discount:0,mutu:0,tanggal:'',catatan:'',imgKtp:'',imgKk:''},
+    }
+  }
 };
 
-// Color map
-const statusColor = {
-  available: 'var(--available)',
-  booked:    'var(--booked)',
-  sold:      'var(--sold)',
-};
-const statusLabel = {
-  available: 'Tersedia', booked: 'Dipesan', sold: 'Terjual'
-};
-
+const SL = {available:'Tersedia',booked:'Dipesan',sold:'Terjual'};
 let isAdmin = false;
-let currentKavling = null;
-let uploadedImages = {};
+let currentCluster = null;
+let currentKavlingId = null;
 
-// ═══ AUTH ═══
-function openLoginModal() {
-  document.getElementById('loginModal').classList.add('open');
+// ── UPLOAD SYSTEM ──
+function handleUpload(event, type) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const b64 = e.target.result;
+    document.getElementById('img-'+type).src = b64;
+    document.getElementById('name-'+type).textContent = file.name;
+    document.getElementById('prev-'+type).style.display = 'block';
+    document.getElementById('clear-'+type).style.display = 'block';
+    window['_tmp_img_'+type] = b64;
+  };
+  reader.readAsDataURL(file);
 }
-function closeLoginModal() {
-  document.getElementById('loginModal').classList.remove('open');
+
+function clearUpload(type) {
+  document.getElementById('img-'+type).src = '';
+  document.getElementById('name-'+type).textContent = '';
+  document.getElementById('prev-'+type).style.display = 'none';
+  document.getElementById('clear-'+type).style.display = 'none';
+  document.getElementById('file-'+type).value = '';
+  window['_tmp_img_'+type] = '';
 }
-function doLogin() {
+
+// ── RENDER OVERLAY KAVLING (WARNA STATUS PAS MENGIKUTI KOTAK GAMBAR CLUSTER) ──
+function renderClusterKavlingLayer(key) {
+  const layer = document.getElementById('dynamicKavlingLayer');
+  layer.innerHTML = '';
+  const kavlingList = Object.values(CLUSTERS[key].kavling);
+  
+  kavlingList.forEach(k => {
+    const box = document.createElement('div');
+    // Menyuntikkan style warna latar belakang semi-transparan berdasarkan status konstruksi/penjualan
+    box.className = `kavling-hitbox kv-status-${k.status}`;
+    
+    // Sinkronisasi posisi koordinat kotak warna tepat di atas denah gambar fisik .png
+    box.style.top = `${k.top}%`;
+    box.style.left = `${k.left}%`;
+    box.style.width = `${k.w}%`;
+    box.style.height = `${k.h}%`;
+    
+    // Teks label nomor kaveling di tengah kotak warna
+    box.textContent = k.id;
+    box.onclick = () => kavlingClick(k.id);
+    layer.appendChild(box);
+  });
+}
+
+// ── NAVIGATION CONTROLLER ──
+function openCluster(key) {
+  currentCluster = key;
+  currentKavlingId = null;
+  const cl = CLUSTERS[key];
+  
+  document.getElementById('clusterTitle').textContent = cl.name;
+  document.getElementById('clusterMapImg').src = cl.imageFile;
+  
+  document.getElementById('masterView').style.display = 'none';
+  document.getElementById('clusterView').style.display = 'flex';
+  
+  updateBreadcrumb(key);
+  renderStatsStrip(key);
+  renderClusterKavlingLayer(key); // Menggambar kotak overlay warna status kaveling secara real-time
+  document.getElementById('btnExport').style.display = isAdmin ? 'flex' : 'none';
+}
+
+function goMaster() {
+  currentCluster = null;
+  currentKavlingId = null;
+  document.getElementById('masterView').style.display = 'flex';
+  document.getElementById('clusterView').style.display = 'none';
+  updateBreadcrumb(null);
+  document.getElementById('btnExport').style.display = 'none';
+}
+
+function updateBreadcrumb(key) {
+  const bc = document.getElementById('breadcrumb');
+  if(!key){bc.innerHTML = `<span class="bc-sep">›</span><span class="bc-active">Master Plan</span>`; return;}
+  bc.innerHTML = `<span class="bc-sep">›</span><span class="bc-link" onclick="goMaster()">Master Plan</span><span class="bc-sep">›</span><span class="bc-active">${CLUSTERS[key].name}</span>`;
+}
+
+function renderStatsStrip(key) {
+  const all = Object.values(CLUSTERS[key].kavling);
+  const c = {available:0,booked:0,sold:0};
+  all.forEach(k => c[k.status]++);
+  document.getElementById('statsStrip').innerHTML = `
+    <div class="stat-item stat-available"><div class="stat-num">${c.available}</div><div class="stat-lbl">Tersedia</div></div>
+    <div class="stat-item stat-booked"><div class="stat-num">${c.booked}</div><div class="stat-lbl">Dipesan</div></div>
+    <div class="stat-item stat-sold"><div class="stat-num">${c.sold}</div><div class="stat-lbl">Terjual</div></div>
+    <div class="stat-item"><div class="stat-num">${all.length}</div><div class="stat-lbl">Total</div></div>`;
+}
+
+// ── ACTION POPUP CONTROLLER ──
+function kavlingClick(id) {
+  currentKavlingId = id;
+  const d = CLUSTERS[currentCluster].kavling[id];
+  openKavlingPopup(d);
+}
+
+function openKavlingPopup(d) {
+  const cl = CLUSTERS[currentCluster];
+  document.getElementById('kvm-title').textContent = 'Kavling ' + d.id;
+  document.getElementById('kvm-sub').textContent = cl.name + ' · Blok ' + d.blok;
+
+  const bc = {available:'sb-available', booked:'sb-booked', sold:'sb-sold'};
+  const badge = document.getElementById('kvm-status-badge');
+  badge.className = 'status-badge ' + bc[d.status];
+  badge.textContent = '● ' + SL[d.status];
+
+  const infoItems = [
+    {l:'Luas Tanah Actual', v:d.luas + ' m²'},
+    {l:'Tipe Bangunan', v:d.tipe || '—'},
+    {l:'Lokasi Blok', v:'Blok ' + d.blok},
+    {l:'Nama Cluster', v:cl.name},
+  ];
+  if(isAdmin){
+    infoItems.push({l:'Harga Price List', v:fmtRp(d.harga)});
+    infoItems.push({l:'Nilai Deal Transaksi', v:d.jumlah ? fmtRp(d.jumlah) : '—'});
+  }
+  document.getElementById('kvm-info-grid').innerHTML = infoItems.map(i => `
+    <div class="kv-popup-cell">
+      <div class="kv-popup-label">${i.l}</div>
+      <div class="kv-popup-val">${i.v}</div>
+    </div>`).join('');
+
+  const buyerSec = document.getElementById('kvm-buyer-section');
+  const mp = {Cash:'mp-cash', KPR:'mp-kpr', 'Cash Tempo':'mp-tempo'};
+  if(isAdmin && d.nama){
+    buyerSec.style.display = 'block';
+    document.getElementById('kvm-buyer-content').innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.4rem .75rem">
+        <div><div class="kv-popup-label">Nama Konsumen</div><div style="font-size:.84rem;color:white;font-weight:600">${d.nama}</div></div>
+        <div><div class="kv-popup-label">No. Telepon / HP</div><div style="font-size:.84rem;color:white;font-weight:600">${d.hp}</div></div>
+        <div style="grid-column:1/-1"><div class="kv-popup-label">Alamat Lengkap</div><div style="font-size:.82rem;color:rgba(255,255,255,.8)">${d.alamat}</div></div>
+        <div><div class="kv-popup-label">Nomor NIK KTP</div><div style="font-size:.82rem;color:rgba(255,255,255,.8)">${d.noktp}</div></div>
+        <div><div class="kv-popup-label">Nomor SPR</div><div style="font-size:.82rem;color:rgba(255,255,255,.8)">${d.nospr}</div></div>
+        <div><div class="kv-popup-label">Sistem Bayar</div><div><span class="method-pill ${mp[d.metode]||''}">${d.metode}</span></div></div>
+        <div><div class="kv-popup-label">Uang Muka Terbayar</div><div style="font-size:.82rem;color:rgba(255,255,255,.8)">${d.dp ? fmtRp(d.dp) : '—'}</div></div>
+        ${d.tanggal ? `<div><div class="kv-popup-label">Tanggal Validasi</div><div style="font-size:.82rem;color:rgba(255,255,255,.8)">${fmtDate(d.tanggal)}</div></div>` : ''}
+        ${d.catatan ? `<div style="grid-column:1/-1"><div class="kv-popup-label">Memo Deskripsi</div><div style="font-size:.8rem;color:rgba(255,255,255,.7)">${d.catatan}</div></div>` : ''}
+      </div>`;
+  } else {
+    buyerSec.style.display = 'none';
+  }
+
+  const docSec = document.getElementById('kvm-doc-section');
+  if(isAdmin){
+    docSec.style.display = 'block';
+    document.getElementById('kvm-ktp-wrap').innerHTML = d.imgKtp
+      ? `<img src="${d.imgKtp}" class="popup-doc-img" alt="KTP" onclick="window.open(this.src)" style="cursor:zoom-in"/>`
+      : `<div class="popup-doc-empty"><span>🪪</span><span>Belum Ter-upload</span></div>`;
+    document.getElementById('kvm-kk-wrap').innerHTML = d.imgKk
+      ? `<img src="${d.imgKk}" class="popup-doc-img" alt="KK" onclick="window.open(this.src)" style="cursor:zoom-in"/>`
+      : `<div class="popup-doc-empty"><span>👨‍👩‍👧</span><span>Belum Ter-upload</span></div>`;
+  } else {
+    docSec.style.display = 'none';
+  }
+
+  let actions = '';
+  const actionWrapper = document.getElementById('kvm-actions');
+  if(isAdmin){
+    actionWrapper.className = 'popup-actions two-cols';
+    actions += `<button onclick="closeModal('kavlingModal');openAdminModal('${d.id}')" style="padding:.6rem;background:var(--moss);color:white;border:none;border-radius:6px;font-size:.8rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif">✏️ Edit Data Properti</button>`;
+    actions += `<button onclick="closeModal('kavlingModal');exportKavlingPdf('${d.id}')" style="padding:.6rem;background:rgba(201,150,58,.2);color:var(--gold);border:1px solid rgba(201,150,58,.4);border-radius:6px;font-size:.8rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif">📄 Export Cetak SPR</button>`;
+  } else {
+    actionWrapper.className = 'popup-actions';
+    actions += `<button onclick="closeModal('kavlingModal')" style="padding:.6rem;background:rgba(255,255,255,.1);color:white;border:none;border-radius:6px;font-size:.8rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif">Tutup Jendela Detail</button>`;
+  }
+  actionWrapper.innerHTML = actions;
+  document.getElementById('kavlingModal').classList.add('open');
+}
+
+// ── AUTENTIKASI ADMIN SYSTEM ──
+function openLoginModal(){document.getElementById('loginModal').classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+function closeOnBdrop(e,id){if(e.target.id===id)closeModal(id);}
+
+function doLogin(){
   const u = document.getElementById('loginUser').value.trim();
   const p = document.getElementById('loginPass').value.trim();
-  if (u === 'admin' && p === 'admin123') {
+  if(u === 'admin' && p === 'admin123'){
     isAdmin = true;
-    closeLoginModal();
+    closeModal('loginModal');
     document.getElementById('adminBar').classList.add('visible');
-    document.getElementById('navRight').innerHTML = `
-      <span style="color:var(--gold);font-size:.8rem;font-weight:600">👤 Admin</span>
-      <button class="btn-nav outline" onclick="doLogout()">Keluar</button>`;
-    showToast('Login berhasil! Selamat datang, Admin.', 'success');
+    document.getElementById('canvas').classList.add('with-admin');
+    document.getElementById('btnLogin').style.display = 'none';
+    document.getElementById('btnLogout').style.display = '';
+    document.getElementById('navUser').style.display = '';
+    if(currentCluster) document.getElementById('btnExport').style.display = 'flex';
+    showToast('Login berhasil! Mode Manajemen Konstruksi aktif.','success');
   } else {
-    showToast('Username atau password salah.', 'error');
+    showToast('Akses ditolak! Kombinasi salah.','error');
   }
 }
-function doLogout() {
+
+function doLogout(){
   isAdmin = false;
   document.getElementById('adminBar').classList.remove('visible');
-  document.getElementById('navRight').innerHTML = `<button class="btn-nav outline" onclick="openLoginModal()">Login Admin</button>`;
-  // Close detail modal if open
-  if (document.getElementById('detailModal').classList.contains('open')) {
-    document.getElementById('detailModal').classList.remove('open');
-  }
-  // Refresh detail if open to hide buyer info
-  if (currentKavling) showDetailModal(kavlingData[currentKavling]);
-  showToast('Anda telah keluar.', 'success');
+  document.getElementById('canvas').classList.remove('with-admin');
+  document.getElementById('btnLogin').style.display = '';
+  document.getElementById('btnLogout').style.display = 'none';
+  document.getElementById('navUser').style.display = 'none';
+  document.getElementById('btnExport').style.display = 'none';
+  showToast('Sesi kerja admin diakhiri.','success');
 }
 
-// ═══ KAVLING CLICK ═══
-function kavlingClick(id) {
-  currentKavling = id;
-  const d = kavlingData[id];
-
-  // Show detail in modal popup
-  showDetailModal(d);
-}
-
-function showDetailModal(d) {
-  const badgeClass = {available:'badge-available', booked:'badge-booked', sold:'badge-sold'};
-  const metodeClass = {Cash:'pill-cash', KPR:'pill-kpr', 'Cash Tempo':'pill-cash-tempo'};
-
-  let buyerHtml = '';
-  if (d.nama) {
-    buyerHtml = `
-      <hr class="divider"/>
-      <div class="buyer-section">
-        <h4>INFORMASI PEMBELI</h4>
-        <div class="buyer-row"><span class="bl">Nama</span><span class="bv">${d.nama}</span></div>
-        ${d.nospr ? `<div class="buyer-row"><span class="bl">No. SPR</span><span class="bv">${d.nospr}</span></div>` : ''}
-        ${d.metode ? `<div class="buyer-row"><span class="bl">Pembayaran</span><span class="bv"><span class="pill ${metodeClass[d.metode]||''}">${d.metode}</span></span></div>` : ''}
-        ${d.jumlah ? `<div class="buyer-row"><span class="bl">Jumlah</span><span class="bv">${fmtRp(d.jumlah)}</span></div>` : ''}
-        ${d.tanggal ? `<div class="buyer-row"><span class="bl">Tgl. Akad</span><span class="bv">${fmtDate(d.tanggal)}</span></div>` : ''}
-        ${d.catatan ? `<div class="buyer-row"><span class="bl">Catatan</span><span class="bv">${d.catatan}</span></div>` : ''}
-      </div>`;
-  }
-
-  let docsHtml = '';
-  if (isAdmin && (d.imgKtp || d.imgSpr)) {
-    docsHtml = `<hr class="divider"/><div class="buyer-section"><h4>DOKUMEN</h4><div class="kavling-img-row">`;
-    if (d.imgKtp) docsHtml += `<img class="kavling-img-thumb" src="${d.imgKtp}" title="KTP" onclick="openImgModal('${d.imgKtp}')"/>`;
-    if (d.imgSpr) docsHtml += `<img class="kavling-img-thumb" src="${d.imgSpr}" title="SPR" onclick="openImgModal('${d.imgSpr}')"/>`;
-    docsHtml += `</div></div>`;
-  }
-
-  let adminBtn = '';
-  if (isAdmin) {
-    adminBtn = `<button onclick="openAdminModal('${d.id}')" style="width:100%;margin-top:1rem;padding:.6rem;background:var(--moss);color:white;border:none;border-radius:6px;cursor:pointer;font-size:.82rem;font-weight:600;">✏️ Edit Data Kavling</button>`;
-  }
-
-  const headerHtml = `
-    <h3>Kavling ${d.id}</h3>
-    <p>Blok ${d.blok} • ${d.tipe || '—'}</p>
-  `;
-
-  const contentHtml = `
-    <div class="kavling-badge ${badgeClass[d.status]}">${statusLabel[d.status]}</div>
-    <div class="detail-grid">
-      <div class="d-item"><label>LUAS TANAH</label><value>${d.luas} m²</value></div>
-      ${isAdmin ? `<div class="d-item"><label>HARGA</label><value>${fmtRp(d.harga)}</value></div>` : ''}
-      <div class="d-item"><label>BLOK</label><value>Blok ${d.blok}</value></div>
-      <div class="d-item"><label>TIPE</label><value>${d.tipe || '—'}</value></div>
-    </div>
-    ${isAdmin ? buyerHtml : ''}
-    ${docsHtml}
-    ${adminBtn}
-  `;
-
-  document.getElementById('detailModalHeader').innerHTML = headerHtml;
-  document.getElementById('detailModalContent').innerHTML = contentHtml;
-  document.getElementById('detailModal').classList.add('open');
-}
-
-// ═══ ADMIN MODAL ═══
 function openAdminModal(id) {
-  const d = kavlingData[id];
-  document.getElementById('adminModalTitle').textContent = 'Edit Kavling ' + id;
-  document.getElementById('adminModalSub').textContent = `Blok ${d.blok} — ${d.luas} m²`;
+  const d = CLUSTERS[currentCluster].kavling[id];
+  document.getElementById('adminModalTitle').textContent = 'Manajemen Properti ' + id;
+  document.getElementById('adminModalSub').textContent = `Blok ${d.blok} · Luas ${d.luas} m²`;
   document.getElementById('f-id').value = id;
   document.getElementById('f-status').value = d.status;
   document.getElementById('f-luas').value = d.luas;
   document.getElementById('f-harga').value = d.harga;
   document.getElementById('f-tipe').value = d.tipe || '';
   document.getElementById('f-nama').value = d.nama || '';
+  document.getElementById('f-alamat').value = d.alamat || '';
+  document.getElementById('f-noktp').value = d.noktp || '';
+  document.getElementById('f-hp').value = d.hp || '';
   document.getElementById('f-nospr').value = d.nospr || '';
   document.getElementById('f-metode').value = d.metode || '';
   document.getElementById('f-jumlah').value = d.jumlah || '';
+  document.getElementById('f-dp').value = d.dp || '';
+  document.getElementById('f-kelebihan').value = d.kelebihan || '';
+  document.getElementById('f-discount').value = d.discount || '';
+  document.getElementById('f-mutu').value = d.mutu || '';
   document.getElementById('f-tanggal').value = d.tanggal || '';
   document.getElementById('f-catatan').value = d.catatan || '';
-
-  // reset uploads
-  uploadedImages = { ktp: d.imgKtp || '', spr: d.imgSpr || '' };
-  updateUploadPreview('ktp', d.imgKtp);
-  updateUploadPreview('spr', d.imgSpr);
-
+  
+  window['_tmp_img_ktp'] = d.imgKtp || '';
+  window['_tmp_img_kk'] = d.imgKk || '';
+  if(d.imgKtp){
+    document.getElementById('img-ktp').src = d.imgKtp;
+    document.getElementById('prev-ktp').style.display = 'block';
+    document.getElementById('clear-ktp').style.display = 'block';
+    document.getElementById('name-ktp').textContent = 'Arsip KTP Valid';
+  } else {
+    document.getElementById('prev-ktp').style.display = 'none';
+    document.getElementById('clear-ktp').style.display = 'none';
+    document.getElementById('img-ktp').src = '';
+  }
+  if(d.imgKk){
+    document.getElementById('img-kk').src = d.imgKk;
+    document.getElementById('prev-kk').style.display = 'block';
+    document.getElementById('clear-kk').style.display = 'block';
+    document.getElementById('name-kk').textContent = 'Arsip KK Valid';
+  } else {
+    document.getElementById('prev-kk').style.display = 'none';
+    document.getElementById('clear-kk').style.display = 'none';
+    document.getElementById('img-kk').src = '';
+  }
   document.getElementById('adminModal').classList.add('open');
 }
 
-function handleUpload(evt, type) {
-  const file = evt.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    uploadedImages[type] = e.target.result;
-    updateUploadPreview(type, e.target.result);
-  };
-  reader.readAsDataURL(file);
-}
-
-function updateUploadPreview(type, src) {
-  const prev = document.getElementById('prev-'+type);
-  const img = document.getElementById('img-'+type);
-  if (src) {
-    img.src = src;
-    prev.style.display = 'block';
-  } else {
-    prev.style.display = 'none';
-  }
-}
-
-function saveKavling() {
+function saveKavling(){
   const id = document.getElementById('f-id').value;
-  const d = kavlingData[id];
-
-  d.status  = document.getElementById('f-status').value;
-  d.luas    = parseInt(document.getElementById('f-luas').value) || d.luas;
-  d.harga   = parseInt(document.getElementById('f-harga').value) || d.harga;
-  d.tipe    = document.getElementById('f-tipe').value;
-  d.nama    = document.getElementById('f-nama').value.trim();
-  d.nospr   = document.getElementById('f-nospr').value.trim();
-  d.metode  = document.getElementById('f-metode').value;
-  d.jumlah  = parseInt(document.getElementById('f-jumlah').value) || 0;
+  const d = CLUSTERS[currentCluster].kavling[id];
+  d.status = document.getElementById('f-status').value;
+  d.luas = parseInt(document.getElementById('f-luas').value) || d.luas;
+  d.harga = parseInt(document.getElementById('f-harga').value) || d.harga;
+  d.tipe = document.getElementById('f-tipe').value;
+  d.nama = document.getElementById('f-nama').value.trim();
+  d.alamat = document.getElementById('f-alamat').value.trim();
+  d.noktp = document.getElementById('f-noktp').value.trim();
+  d.hp = document.getElementById('f-hp').value.trim();
+  d.nospr = document.getElementById('f-nospr').value.trim();
+  d.metode = document.getElementById('f-metode').value;
+  d.jumlah = parseInt(document.getElementById('f-jumlah').value) || 0;
+  d.dp = parseInt(document.getElementById('f-dp').value) || 0;
+  d.kelebihan = parseInt(document.getElementById('f-kelebihan').value) || 0;
+  d.discount = parseInt(document.getElementById('f-discount').value) || 0;
+  d.mutu = parseInt(document.getElementById('f-mutu').value) || 0;
   d.tanggal = document.getElementById('f-tanggal').value;
   d.catatan = document.getElementById('f-catatan').value.trim();
-  d.imgKtp  = uploadedImages.ktp || '';
-  d.imgSpr  = uploadedImages.spr || '';
-
-  // Update SVG color
-  const el = document.getElementById('k-' + id);
-  if (el) el.setAttribute('fill', statusColor[d.status]);
-
-  // refresh status badges on map
-  renderStatusBadges();
-
-  // Close modal and refresh detail if needed
-  document.getElementById('adminModal').classList.remove('open');
-  showDetailModal(d);
-  renderStats();
-  showToast('Data kavling ' + id + ' berhasil disimpan!', 'success');
+  
+  if(window['_tmp_img_ktp'] !== undefined) d.imgKtp = window['_tmp_img_ktp'] || d.imgKtp;
+  if(window['_tmp_img_kk'] !== undefined) d.imgKk = window['_tmp_img_kk'] || d.imgKk;
+  
+  closeModal('adminModal');
+  renderStatsStrip(currentCluster);
+  renderClusterKavlingLayer(currentCluster); // Me-refresh render status warna kotak kaveling
+  showToast(`Database Unit ${id} Berhasil Diperbarui!`,'success');
 }
 
-// ═══ TABS ═══
-function switchTab(name) {
-  // Legacy function - no longer used
-}
+function fmtRp(n){if(!n)return'—'; return'Rp ' + n.toLocaleString('id-ID');}
+function fmtDate(s){if(!s)return'—'; return new Date(s).toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});}
+function showToast(msg,type='success'){const t=document.getElementById('toast'); t.textContent=msg; t.className='toast '+type; setTimeout(()=>t.classList.add('show'),10); setTimeout(()=>t.classList.remove('show'),3500);}
 
-// ═══ LIST ═══
-function renderList() {
-  // Legacy function - no longer used
-}
-
-// ═══ STATS ═══
-function renderStats() {
-  const all = Object.values(kavlingData);
-  const counts = { available:0, booked:0, sold:0 };
-  all.forEach(d => counts[d.status]++);
-
-  document.getElementById('statsGrid').innerHTML = `
-    <div class="stat-card sc-available"><div class="s-num">${counts.available}</div><div class="s-lbl">Tersedia</div></div>
-    <div class="stat-card sc-booked"><div class="s-num">${counts.booked}</div><div class="s-lbl">Dipesan</div></div>
-    <div class="stat-card sc-sold"><div class="s-num">${counts.sold}</div><div class="s-lbl">Terjual</div></div>
-  `;
-}
-
-// ═══ HELPERS ═══
-function fmtRp(n) {
-  if (!n) return '—';
-  return 'Rp ' + n.toLocaleString('id-ID');
-}
-function fmtRpShort(n) {
-  if (!n) return '';
-  if (n >= 1e9) return 'Rp ' + (n/1e9).toFixed(1) + 'M';
-  if (n >= 1e6) return 'Rp ' + (n/1e6).toFixed(0) + 'jt';
-  return 'Rp ' + n.toLocaleString('id-ID');
-}
-function fmtDate(s) {
-  if (!s) return '—';
-  const d = new Date(s);
-  return d.toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'});
-}
-
-function showToast(msg, type='success') {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className = 'toast ' + type;
-  setTimeout(() => t.classList.add('show'), 10);
-  setTimeout(() => t.classList.remove('show'), 3500);
-}
-
-function closeOnBackdrop(evt, id) {
-  if (evt.target.id === id) document.getElementById(id).classList.remove('open');
-}
-
-function openImgModal(src) {
-  document.getElementById('imgModalSrc').src = src;
-  document.getElementById('imgModal').classList.add('open');
-}
-
-// Init
-renderStats();
-
-// Add sample placeholder images for sold kavling to ease testing PDF export
-function ensureSampleDocs() {
-  const placeholder = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAWgAAAFoCAIAAAD+2p0xAAAACXBIWXMAAAsTAAALEwEAmpwYAAABmElEQVR4nO3RMQ0AAAgDINc/9K3hA0hQwq0zbYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA8G8F7QABa0s9egAAAABJRU5ErkJggg==';
-  Object.values(kavlingData).forEach(d => {
-    if (d.status === 'sold') {
-      if (!d.imgKtp) d.imgKtp = placeholder;
-      if (!d.imgSpr) d.imgSpr = placeholder;
-    }
-  });
-}
-ensureSampleDocs();
-// render persistent status badges on SVG
-function renderStatusBadges(){
-  const svg = document.getElementById('siteplan-svg');
-  if(!svg) return;
-  // remove existing badges
-  Array.from(svg.querySelectorAll('.svg-status-badge')).forEach(n=>n.remove());
-  const colors = { available:'#4caf7d', booked:'#e8a020', sold:'#c0392b', reserved:'#6b8fcc' };
-  Object.values(kavlingData).forEach(d=>{
-    const rid = 'k-' + d.id;
-    const el = document.getElementById(rid);
-    if (!el) return;
-    try {
-      const bb = el.getBBox();
-      const gx = bb.x + 4;
-      const gy = bb.y + 6;
-      const g = document.createElementNS('http://www.w3.org/2000/svg','g');
-      g.setAttribute('class','svg-status-badge');
-      g.setAttribute('id','s-'+d.id);
-      g.setAttribute('pointer-events','none');
-
-      // text element (temporary) to measure
-      const t = document.createElementNS('http://www.w3.org/2000/svg','text');
-      t.setAttribute('x', gx + 6);
-      t.setAttribute('y', gy + 8);
-      t.setAttribute('font-family','Inter, sans-serif');
-      t.setAttribute('font-size','9');
-      t.setAttribute('fill','#fff');
-      t.textContent = d.status === 'available' ? 'Tersedia' : (d.status === 'booked' ? 'Dipesan' : (d.status === 'sold' ? 'Terjual' : d.status));
-      t.setAttribute('opacity','0');
-      g.appendChild(t);
-      svg.appendChild(g);
-      // measure
-      const tb = t.getBBox();
-      // rect background
-      const rx = document.createElementNS('http://www.w3.org/2000/svg','rect');
-      rx.setAttribute('x', gx);
-      rx.setAttribute('y', gy);
-      rx.setAttribute('rx', 4);
-      rx.setAttribute('ry', 4);
-      rx.setAttribute('width', tb.width + 12);
-      rx.setAttribute('height', tb.height + 6);
-      rx.setAttribute('fill', colors[d.status] || '#888');
-      rx.setAttribute('opacity','0.95');
-
-      // adjust text to visible and position
-      t.setAttribute('x', gx + 6);
-      t.setAttribute('y', gy + tb.height + 2);
-      t.setAttribute('opacity','1');
-
-      // clear group and re-add rect+text
-      g.innerHTML = '';
-      g.appendChild(rx);
-      g.appendChild(t);
-
-    } catch(e){ /* ignore */ }
-  });
-}
-
-// initial badges
-renderStatusBadges();
-
-// ═══════════════════════════════════════════════════
-// EXPORT PDF
-// ═══════════════════════════════════════════════════
-let exportType = 'all';
-let activeChips = { available:true, booked:true, sold:true };
-
-async function svgToPngDataUrl(svgEl, targetWidth, targetHeight) {
-  return new Promise((resolve, reject) => {
-    const clone = svgEl.cloneNode(true);
-    clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-    const styleEl = document.createElementNS('http://www.w3.org/2000/svg', 'style');
-    const rootStyles = getComputedStyle(document.documentElement);
-    styleEl.textContent = `
-      :root {
-        --available: ${rootStyles.getPropertyValue('--available')};
-        --booked: ${rootStyles.getPropertyValue('--booked')};
-        --sold: ${rootStyles.getPropertyValue('--sold')};
-        --forest: ${rootStyles.getPropertyValue('--forest')};
-        --moss: ${rootStyles.getPropertyValue('--moss')};
-        --gold: ${rootStyles.getPropertyValue('--gold')};
-        --cream: ${rootStyles.getPropertyValue('--cream')};
-        --sand: ${rootStyles.getPropertyValue('--sand')};
-      }
-      * { font-family: 'Inter', sans-serif; }
-      text { dominant-baseline: middle; }
-    `;
-    clone.insertBefore(styleEl, clone.firstChild);
-
-    const serialized = new XMLSerializer().serializeToString(clone);
-    const blob = new Blob([serialized], { type: 'image/svg+xml;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const img = new Image();
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      canvas.width = targetWidth;
-      canvas.height = targetHeight;
-      const ctx = canvas.getContext('2d');
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(0, 0, targetWidth, targetHeight);
-      ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
-      URL.revokeObjectURL(url);
-      resolve(canvas.toDataURL('image/png'));
-    };
-    img.onerror = (err) => {
-      URL.revokeObjectURL(url);
-      reject(new Error('Gagal memuat gambar siteplan.'));
-    };
-    img.src = url;
-  });
-}
-
-async function exportSiteplanPdf() {
-  if (!isAdmin) {
-    showToast('Fitur ini hanya untuk admin.', 'error');
-    return;
-  }
-
-  const svg = document.getElementById('siteplan-svg');
-  if (!svg) {
-    showToast('Siteplan tidak ditemukan.', 'error');
-    return;
-  }
-
-  showToast('Mempersiapkan ekspor siteplan…', 'success');
-  try {
-    const viewBox = svg.getAttribute('viewBox')?.split(' ') || [0,0,860,600];
-    const width = parseInt(viewBox[2], 10) || 860;
-    const height = parseInt(viewBox[3], 10) || 600;
-    const pngData = await svgToPngDataUrl(svg, width, height);
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
-    const pw = doc.internal.pageSize.getWidth();
-    const ph = doc.internal.pageSize.getHeight();
-    const margin = 14;
-    let imgW = pw - margin * 2;
-    let imgH = (height / width) * imgW;
-    if (imgH > ph - margin * 2 - 18) {
-      imgH = ph - margin * 2 - 18;
-      imgW = (width / height) * imgH;
-    }
-    const x = (pw - imgW) / 2;
-    const y = margin + 10;
-
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(14);
-    doc.text('SITEPLAN VILLA BUKIT TIDAR', pw / 2, 10, { align: 'center' });
-    doc.addImage(pngData, 'PNG', x, y, imgW, imgH);
-    doc.save('VBT_Siteplan.pdf');
-    showToast('PDF siteplan berhasil diunduh!', 'success');
-  } catch (err) {
-    console.error(err);
-    showToast('Gagal ekspor siteplan: ' + err.message, 'error');
-  }
-}
-
-function openExportModal() {
-  // Only allow Detail Kavling export and list kavling yang sudah TERJUAL
-  const sel = document.getElementById('exportKavlingSelect');
-  sel.innerHTML = '<option value="">— Pilih nomor kavling (Hanya Terjual) —</option>';
-  const sold = Object.values(kavlingData).filter(d => d.status === 'sold').sort((a,b)=>a.id.localeCompare(b.id));
-  if (!sold.length) {
-    showToast('Tidak ada kavling terjual untuk diekspor.', 'error');
-    return;
-  }
-  sold.forEach(d => {
-    sel.innerHTML += `<option value="${d.id}">${d.id} — Blok ${d.blok} (${d.nospr||'No. SPR —'})</option>`;
-  });
-
-  // Force export type to single detail only and hide other cards
-  ['ec-all','ec-filtered','ec-stats'].forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
-  const singleCard = document.getElementById('ec-single'); if (singleCard) singleCard.classList.add('selected');
-  setExportType('single');
-  document.getElementById('exportFormArea').style.display = 'block';
-  document.getElementById('exportProgress').classList.remove('show');
-  document.getElementById('exportModal').classList.add('open');
-}
-
-function setExportType(type) {
-  exportType = type;
-  ['all','filtered','single','stats'].forEach(t => {
-    document.getElementById('ec-'+t).classList.toggle('selected', t === type);
-  });
-  document.getElementById('filterArea').style.display  = type === 'filtered' ? 'block' : 'none';
-  document.getElementById('singleArea').style.display  = type === 'single'   ? 'block' : 'none';
-}
-
-function toggleChip(status) {
-  activeChips[status] = !activeChips[status];
-  document.getElementById('chip-'+status).classList.toggle('on', activeChips[status]);
-}
-
-async function doExportPDF() {
-  document.getElementById('exportFormArea').style.display = 'none';
-  document.getElementById('exportProgress').classList.add('show');
-  setProgress('Menyiapkan dokumen…');
-
-  // small delay to let UI update
-  await new Promise(r => setTimeout(r, 80));
-
-  try {
-    if (exportType === 'all')      await exportAll();
-    else if (exportType === 'filtered') await exportFiltered();
-    else if (exportType === 'single')   await exportSingle();
-    else if (exportType === 'stats')    await exportStats();
-  } catch(e) {
-    console.error(e);
-    showToast('Gagal membuat PDF: ' + e.message, 'error');
-  }
-
-  document.getElementById('exportProgress').classList.remove('show');
-  document.getElementById('exportFormArea').style.display = 'block';
-  document.getElementById('exportModal').classList.remove('open');
-}
-
-function setProgress(msg) {
-  document.getElementById('exportProgressMsg').textContent = msg;
-}
-
-/* ── Brand colors as hex for jsPDF ── */
-const PDF_FOREST  = [26, 46, 28];
-const PDF_MOSS    = [45, 90, 49];
-const PDF_GOLD    = [196, 154, 60];
-const PDF_SAND    = [232, 223, 200];
-const PDF_GRAY    = [138, 138, 138];
-const PDF_LIGHT   = [249, 247, 242];
-const PDF_GREEN   = [76, 175, 125];
-const PDF_YELLOW  = [232, 160, 32];
-const PDF_RED     = [192, 57, 43];
-const PDF_BLUE    = [107, 143, 204];
-
-const statusColorPDF = {
-  available: PDF_GREEN, booked: PDF_YELLOW, sold: PDF_RED
-};
-
-function pdfHeader(doc, title, subtitle) {
-  const pw = doc.internal.pageSize.getWidth();
-  // Header band
-  doc.setFillColor(...PDF_FOREST);
-  doc.rect(0, 0, pw, 28, 'F');
-  // Gold accent line
-  doc.setFillColor(...PDF_GOLD);
-  doc.rect(0, 28, pw, 2, 'F');
-  // Title
-  doc.setTextColor(255, 255, 255);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(13);
-  doc.text('VILLA BUKIT TIDAR', 14, 11);
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8);
-  doc.setTextColor(...PDF_SAND);
-  doc.text('SITEPLAN INTERAKTIF', 14, 17);
-  // Right: doc title
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(10);
-  doc.setTextColor(255, 255, 255);
-  doc.text(title, pw - 14, 11, { align: 'right' });
-  if (subtitle) {
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(7.5);
-    doc.setTextColor(...PDF_SAND);
-    doc.text(subtitle, pw - 14, 17, { align: 'right' });
-  }
-  return 38; // Y after header
-}
-
-function pdfFooter(doc) {
+// ══════════════════════════════════════════
+// EXPORT PDF — KAVLING INDIVIDUAL (SPR FORMAT)
+// ══════════════════════════════════════════
+function exportKavlingPdf(id) {
+  const { jsPDF } = window.jspdf;
+  const d = CLUSTERS[currentCluster].kavling[id];
+  const cl = CLUSTERS[currentCluster];
+  
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: [215, 330] });
   const pw = doc.internal.pageSize.getWidth();
   const ph = doc.internal.pageSize.getHeight();
+
+  doc.setDrawColor(0, 0, 0); doc.setLineWidth(0.5);
+  doc.rect(12, 12, pw - 24, ph - 24);
+
+  doc.setFillColor(255, 255, 255);
+  doc.rect(45, 16, pw - 90, 16, 'FD');
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(13); doc.setTextColor(0, 0, 0);
+  doc.text('SURAT PESANAN RUMAH', pw / 2, 24, { align: 'center' });
+  
+  const sprNo = d.nospr || '............/AMM/....../20..';
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(9.5);
+  doc.text(`NO : ${sprNo}`, pw / 2, 29, { align: 'center' });
+
+  let y = 44;
+  const lx = 18, cx = 70, rx = pw - 18;
+  
+  function field(label, value, yy) {
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(9.5); doc.setTextColor(0, 0, 0);
+    doc.text(label, lx, yy);
+    doc.text(':', cx - 4, yy);
+    doc.line(cx, yy + 0.5, rx, yy + 0.5);
+    if (value) {
+      doc.setFont('helvetica', 'normal');
+      const splitText = doc.splitTextToSize(String(value), rx - cx - 2);
+      doc.text(splitText, cx + 1, yy - 0.5);
+    }
+  }
+
+  field('Nama Pemohon', d.nama || '', y);          y += 8;
+  field('Alamat Lengkap', d.alamat || '', y);      y += 8;
+  field('No. KTP / SIM', d.noktp || '', y);        y += 8;
+  field('No. Telp / HP', d.hp || '', y);          y += 8;
+  field('Cluster', cl.name, y);                    y += 8;
+  field('Blok / No. Kavling', `${d.blok} / ${d.id}`, y); y += 8;
+  field('Type / Luas Tanah', `${d.tipe || '—'} / ${d.luas} m²`, y); y += 11;
+
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(9.5);
+  doc.text('Dengan perincian harga sebagai berikut :', lx, y); y += 6;
+
+  function fieldRight(label, value, yy) {
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(9.5); doc.setTextColor(0, 0, 0);
+    doc.text(label, lx, yy);
+    doc.text(':', 105, yy);
+    doc.line(108, yy + 0.5, rx, yy + 0.5);
+    if (value) { doc.text(value, 110, yy - 0.5); }
+  }
+  
+  const hargaStd = d.harga ? fmtRp(d.harga) : '';
+  const totalJual = d.jumlah ? fmtRp(d.jumlah) : '';
+  const dp = d.dp ? fmtRp(d.dp) : '';
+  const kelebihan = d.kelebihan ? fmtRp(d.kelebihan) : '';
+  const penambahan = d.mutu ? fmtRp(d.mutu) : '';
+  const discount = d.discount ? fmtRp(d.discount) : '';
+  const metodeTeks = d.metode === 'Cash' ? 'TUNAI' : d.metode === 'KPR' ? 'KPR' : d.metode === 'Cash Tempo' ? 'TUNAI BERTAHAP' : '';
+
+  fieldRight('Harga Standar', hargaStd, y);          y += 7.5;
+  fieldRight('Kelebihan Tanah (jika ada)', kelebihan, y); y += 7.5;
+  fieldRight('Penambahan Mutu Bangunan', penambahan, y);  y += 7.5;
+  fieldRight('Potongan Harga / Discount', discount, y);    y += 7.5;
+  fieldRight('Total Harga Jual Kesepakatan', totalJual, y); y += 7.5;
+  fieldRight('Uang Muka / Down Payment (DP)', dp, y);       y += 7.5;
+  fieldRight('Sistem Pembayaran (KPR/TUNAI/BERTAHAP)', metodeTeks, y); y += 11;
+
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(9.5);
+  doc.text('Cara pembayaran yang telah disetujui :', lx, y); y += 5;
+
+  const tbl = { x: lx, w: pw - (lx * 2) };
+  const cols = [15, 64, 45, 55]; 
+  const colX = [tbl.x, tbl.x + cols[0], tbl.x + cols[0] + cols[1], tbl.x + cols[0] + cols[1] + cols[2]];
+  const heads = ['NO.', 'URAIAN PEMBAYARAN', 'Rencana Tanggal Bayar', 'JUMLAH NOMINAL'];
+  
+  doc.setFillColor(242, 242, 242);
+  doc.rect(tbl.x, y, tbl.w, 7, 'FD');
+  
+  heads.forEach((h, i) => {
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(8.5); doc.setTextColor(0);
+    doc.text(h, colX[i] + cols[i] / 2, y + 4.8, { align: 'center' });
+  });
+  y += 7;
+
+  const rowH = 7.5;
+  for (let r = 0; r < 7; r++) {
+    doc.setDrawColor(0); doc.setLineWidth(0.25);
+    doc.rect(tbl.x, y, tbl.w, rowH);
+    let cx2 = tbl.x + cols[0];
+    for (let i = 0; i < 3; i++) {
+      doc.line(cx2, y, cx2, y + rowH);
+      cx2 += cols[i + 1];
+    }
+    if (r === 0 && d.dp) {
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); doc.setTextColor(0);
+      doc.text('1', colX[0] + cols[0] / 2, y + 4.8, { align: 'center' });
+      doc.text('Pembayaran Uang Muka (DP)', colX[1] + 2, y + 4.8);
+      if (d.tanggal) doc.text(fmtDate(d.tanggal), colX[2] + 2, y + 4.8);
+      doc.text(fmtRp(d.dp), colX[3] + 2, y + 4.8);
+    }
+    y += rowH;
+  }
+  y += 6;
+
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); doc.setTextColor(0);
+  const notes = [
+    'Catatan Penting :',
+    '- Pemohon bersedia menambah nilai Uang Muka secara mandiri apabila nilai plafon KPR yang disetujui Bank berbeda.',
+    '- Ketentuan suku bunga berjalan beserta nilai angsuran mutlak menjadi wewenang penuh lembaga Perbankan penyedia KPR.',
+    '- Penyesuaian luas tanah aktual akan dihitung kembali saat sertifikat pecah terbit mengacu pada harga kesepakatan awal.',
+    '- Akumulasi total harga jual di atas belum termasuk komponen biaya pajak properti (BPHTB) serta biaya administrasi KPR.',
+    '- Segala bentuk transaksi resmi wajib ditransfer hanya ke rekening operasional perusahaan PT / Developer yang ditunjuk.'
+  ];
+  
+  notes.forEach((n, i) => {
+    doc.text(n, lx, y);
+    y += (i === 0) ? 4.5 : 4.0;
+  });
+
+  const sigY = ph - 56;
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(9.5);
+  doc.text('Mengetahui / Menyetujui,', lx, sigY);
+  
+  const malangDate = `Malang, ${d.tanggal ? fmtDate(d.tanggal) : '.............................. 20 ......'}`;
+  doc.text(malangDate, pw / 2 + 12, sigY);
+
+  const sig4x = [lx + 5, lx + 45, pw / 2 + 12, pw / 2 + 54];
+  const sig4 = [['Manajer Keuangan'], ['Manajer Marketing'], ['Sales Advisor'], ['Pemesan / Pembeli']];
+  
+  sig4.forEach((s, i) => {
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5);
+    doc.text(s[0], sig4x[i], sigY + 24);
+    doc.line(sig4x[i] - 3, sigY + 21, sig4x[i] + 32, sigY + 21);
+  });
+
+  // PAGE 2 : LAMPIRAN DOKUMEN
+  doc.addPage();
+  doc.setFillColor(15, 37, 24); doc.rect(0, 0, pw, 26, 'F');
+  doc.setFillColor(201, 150, 58); doc.rect(0, 26, pw, 1.5, 'F');
+  
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(13); doc.setTextColor(255, 255, 255);
+  doc.text('VILLA BUKIT TIDAR', 14, 10);
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(220, 205, 170);
+  doc.text('DOKUMEN LAMPIRAN PENDUKUNG (VALIDASI DATA)', 14, 16);
+  
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(255, 255, 255);
+  doc.text(`Kavling ${id} · ${cl.name}`, pw - 14, 10, { align: 'right' });
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(220, 205, 170);
+  doc.text(`No. SPR: ${d.nospr || '—'}`, pw - 14, 16, { align: 'right' });
+
+  let py = 36;
+  doc.setFillColor(30, 60, 40); doc.roundedRect(14, py, pw - 28, 10, 1.5, 1.5, 'F');
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(201, 150, 58);
+  doc.text('FOTO KTP PEMOHON UTAMA', 20, py + 6.5);
+  py += 15;
+  
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(50, 50, 50);
+  doc.text(`Nama Tertera : ${d.nama || '—'}`, 14, py);
+  doc.text(`Nomor NIK    : ${d.noktp || '—'}`, 14, py + 5);
+  py += 12;
+
+  if (d.imgKtp) {
+    try {
+      const imgW = pw - 28, imgH = 110; 
+      doc.addImage(d.imgKtp, 'JPEG', 14, py, imgW, imgH);
+      py += imgH + 10;
+    } catch (e) {
+      doc.setFillColor(245, 245, 245); doc.rect(14, py, pw - 28, 80, 'F');
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(9.5); doc.setTextColor(120);
+      doc.text('[ Gagal memuat file format gambar KTP ]', pw / 2, py + 40, { align: 'center' });
+      py += 90;
+    }
+  } else {
+    doc.setFillColor(245, 245, 245); doc.rect(14, py, pw - 28, 60, 'F');
+    doc.setDrawColor(200); doc.setLineWidth(0.3); doc.rect(14, py, pw - 28, 60);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(9.5); doc.setTextColor(150);
+    doc.text('[ Berkas Foto KTP Belum Diupload Admin ]', pw / 2, py + 30, { align: 'center' });
+    py += 70;
+  }
+
+  if (py > 190) { doc.addPage(); py = 32; } else { py += 5; }
+
+  doc.setFillColor(30, 60, 40); doc.roundedRect(14, py, pw - 28, 10, 1.5, 1.5, 'F');
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(201, 150, 58);
+  doc.text('FOTO KARTU KELUARGA (KK)', 20, py + 6.5);
+  py += 15;
+  
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(50, 50, 50);
+  doc.text(`Kepala Keluarga : ${d.nama || '—'}`, 14, py);
+  py += 10;
+
+  if (d.imgKk) {
+    try {
+      const imgW2 = pw - 28, imgH2 = 110;
+      doc.addImage(d.imgKk, 'JPEG', 14, py, imgW2, imgH2);
+    } catch (e) {
+      doc.setFillColor(245, 245, 245); doc.rect(14, py, pw - 28, 80, 'F');
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(9.5); doc.setTextColor(120);
+      doc.text('[ Gagal memuat file format gambar KK ]', pw / 2, py + 40, { align: 'center' });
+    }
+  } else {
+    doc.setFillColor(245, 245, 245); doc.rect(14, py, pw - 28, 60, 'F');
+    doc.setDrawColor(200); doc.setLineWidth(0.3); doc.rect(14, py, pw - 28, 60);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(9.5); doc.setTextColor(150);
+    doc.text('[ Berkas Foto Kartu Keluarga Belum Diupload Admin ]', pw / 2, py + 30, { align: 'center' });
+  }
+
+  const totalPg = doc.internal.getNumberOfPages();
+  for (let i = 1; i <= totalPg; i++) {
+    if (i > 1) { 
+      doc.setPage(i);
+      const pph = doc.internal.pageSize.getHeight();
+      doc.setFillColor(235, 230, 215); doc.rect(0, pph - 8, pw, 8, 'F');
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(110);
+      doc.text(`Dicetak: ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })} · Sistem Informasi Villa Bukit Tidar`, 14, pph - 3);
+      doc.text(`Halaman ${i} dari ${totalPg}`, pw - 14, pph - 3, { align: 'right' });
+    }
+  }
+
+  doc.save(`SPR_${id}_${(d.nama || 'KOSONG').replace(/ /g, '_')}.pdf`);
+  showToast('Dokumen SPR ukuran F4 berhasil diunduh!', 'success');
+}
+
+// ── EXPORT REKAP PDF ──
+function exportCurrentPdf() {
+  if (!currentCluster) return;
+  const { jsPDF } = window.jspdf;
+  const cl = CLUSTERS[currentCluster];
+  const all = Object.values(cl.kavling);
+  
+  const doc = new jsPDF({ orientation: 'l', unit: 'mm', format: 'a4' });
+  const pw = doc.internal.pageSize.getWidth();
+  const ph = doc.internal.pageSize.getHeight();
+  
+  const counts = { available: 0, booked: 0, sold: 0 };
+  all.forEach(d => counts[d.status]++);
+  
+  doc.setFillColor(15, 37, 24); doc.rect(0, 0, pw, 24, 'F');
+  doc.setFillColor(201, 150, 58); doc.rect(0, 24, pw, 1.5, 'F');
+  
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(13); doc.setTextColor(255, 255, 255);
+  doc.text('VILLA BUKIT TIDAR', 14, 10);
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(220, 205, 170);
+  doc.text('REKAPITULASI DATA PROPERTI REAL-TIME', 14, 15);
+  
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(255, 255, 255);
+  doc.text(cl.name.toUpperCase(), pw - 14, 11, { align: 'right' });
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(220, 205, 170);
+  doc.text('LAPORAN STATUS PENJUALAN UNIT CLUSTER', pw - 14, 16, { align: 'right' });
+  
+  let y = 32;
+  const bw = (pw - 28 - 9) / 3;
+  
+  [{ l: 'UNIT TERSEDIA (AVAILABLE)', v: counts.available, c: [45, 130, 90] },
+   { l: 'UNIT DIPESAN (BOOKED)', v: counts.booked, c: [180, 115, 30] },
+   { l: 'UNIT TERJUAL (SOLD)', v: counts.sold, c: [150, 40, 40] }].forEach((b, i) => {
+    const bx = 14 + i * (bw + 4.5);
+    doc.setFillColor(...b.c); doc.roundedRect(bx, y, bw, 13, 1.5, 1.5, 'F');
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(13); doc.setTextColor(255, 255, 255);
+    doc.text(String(b.v), bx + bw / 2, y + 6, { align: 'center' });
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(7);
+    doc.text(b.l, bx + bw / 2, y + 10.5, { align: 'center' });
+  });
+  
+  y += 19;
+  
+  const rows = all.sort((a, b) => a.id.localeCompare(b.id, undefined, { numeric: true, sensitivity: 'base' })).map(d => [
+    d.id, `Blok ${d.blok}`, d.tipe || '—', d.luas + ' m²', fmtRp(d.harga),
+    { content: SL[d.status], styles: { fillColor: d.status === 'available' ? [45, 130, 90] : d.status === 'booked' ? [180, 115, 30] : [150, 40, 40], textColor: [255, 255, 255], fontStyle: 'bold', halign: 'center', fontSize: 6.5 } },
+    d.nama || '—', d.nospr || '—', d.metode || '—', d.tanggal ? fmtDate(d.tanggal) : '—'
+  ]);
+  
+  doc.autoTable({
+    startY: y,
+    head: [['Unit', 'Blok', 'Tipe', 'Luas', 'Harga Standar', 'Status', 'Nama Pembeli', 'No. SPR', 'Metode', 'Tgl. Akad']],
+    body: rows,
+    theme: 'grid',
+    styles: { fontSize: 6.8, cellPadding: 1.5, valign: 'middle' },
+    headStyles: { fillColor: [15, 37, 24], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 7.2 },
+    alternateRowStyles: { fillColor: [248, 246, 240] },
+    columnStyles: { 
+      0: { cellWidth: 12, fontStyle: 'bold' }, 
+      1: { cellWidth: 14 },
+      2: { cellWidth: 18 },
+      3: { halign: 'right', cellWidth: 16 }, 
+      4: { halign: 'right', cellWidth: 26 }, 
+      5: { cellWidth: 18 },
+      6: { cellWidth: 35 }, 
+      8: { cellWidth: 20 },
+      9: { cellWidth: 24 }
+    },
+    margin: { left: 14, right: 14 },
+    tableWidth: 'auto'
+  });
+  
   const pages = doc.internal.getNumberOfPages();
   for (let i = 1; i <= pages; i++) {
     doc.setPage(i);
-    doc.setFillColor(...PDF_SAND);
-    doc.rect(0, ph - 10, pw, 10, 'F');
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(7);
-    doc.setTextColor(...PDF_GRAY);
-    doc.text(`Dicetak: ${new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'})} • Dokumen Rahasia `, 14, ph - 3.5);
-    doc.text(`Hal. ${i} / ${pages}`, pw - 14, ph - 3.5, { align: 'right' });
+    doc.setFillColor(232, 223, 200); doc.rect(0, ph - 8, pw, 8, 'F');
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(7); doc.setTextColor(100, 100, 100);
+    doc.text(`Laporan Komprehensif Proyek · Dicetak: ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}`, 14, ph - 3);
+    doc.text(`Halaman ${i} dari ${pages}`, pw - 14, ph - 3, { align: 'right' });
   }
+  
+  doc.save(`VBT_Rekapitulasi_${currentCluster}_${cl.name.replace(/ /g, '_')}.pdf`);
+  showToast('Laporan rekap A4 landscape berhasil diunduh!', 'success');
 }
 
-function statusBadgeCell(status) {
-  return { content: statusLabel[status], styles: { fillColor: statusColorPDF[status], textColor: [255,255,255], fontStyle:'bold', fontSize:7.5, halign:'center' } };
-}
-
-/* ──────────────────────────────────────────
-   1. EXPORT ALL
-────────────────────────────────────────── */
-async function exportAll() {
-  setProgress('Menyusun laporan semua kavling…');
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
-  const pw = doc.internal.pageSize.getWidth();
-
-  let y = pdfHeader(doc, 'REKAPITULASI KAVLING', 'Semua Unit — Phase 1');
-
-  // Summary boxes
-  const all = Object.values(kavlingData);
-  const counts = { available:0, booked:0, sold:0 };
-  all.forEach(d => counts[d.status]++);
-  const soldVal = all.filter(d=>d.status==='sold').reduce((s,d)=>s+d.harga,0);
-
-  const boxW = (pw - 28 - 9) / 4;
-  const boxes = [
-    { label: 'TERSEDIA', val: counts.available, color: PDF_GREEN },
-    { label: 'DIPESAN',  val: counts.booked,    color: PDF_YELLOW },
-    { label: 'TERJUAL',  val: counts.sold,       color: PDF_RED },
-  ];
-  boxes.forEach((b, i) => {
-    const bx = 14 + i * (boxW + 3);
-    doc.setFillColor(...b.color);
-    doc.roundedRect(bx, y, boxW, 18, 2, 2, 'F');
-    doc.setFont('helvetica','bold'); doc.setFontSize(18); doc.setTextColor(255,255,255);
-    doc.text(String(b.val), bx + boxW/2, y + 10, { align:'center' });
-    doc.setFont('helvetica','normal'); doc.setFontSize(7); doc.setTextColor(255,255,255);
-    doc.text(b.label, bx + boxW/2, y + 15.5, { align:'center' });
-  });
-  y += 24;
-
-  // Value summary line
-  doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(...PDF_GRAY);
-  doc.text(`Total: ${all.length} kavling   •   Nilai terjual: ${fmtRp(soldVal)}   •   Luas total: ${all.reduce((s,d)=>s+d.luas,0).toLocaleString('id-ID')} m²`, 14, y);
-  y += 6;
-
-  setProgress('Membuat tabel data…');
-  await new Promise(r => setTimeout(r, 40));
-
-  const rows = all.sort((a,b) => a.id.localeCompare(b.id)).map(d => [
-    d.id,
-    `Blok ${d.blok}`,
-    d.tipe || '—',
-    d.luas + ' m²',
-    fmtRp(d.harga),
-    statusBadgeCell(d.status),
-    d.nama || '—',
-    d.nospr || '—',
-    d.metode || '—',
-    d.jumlah ? fmtRp(d.jumlah) : '—',
-    d.tanggal ? fmtDate(d.tanggal) : '—',
-  ]);
-
-  doc.autoTable({
-    startY: y,
-    head: [['Kavling','Blok','Tipe','Luas','Harga','Status','Nama Pembeli','No. SPR','Metode','Jumlah','Tgl. Akad']],
-    body: rows,
-    theme: 'grid',
-    styles: { fontSize: 7.2, cellPadding: 2.2, valign:'middle', overflow:'linebreak' },
-    headStyles: { fillColor: PDF_FOREST, textColor:[255,255,255], fontStyle:'bold', fontSize:7.5 },
-    alternateRowStyles: { fillColor: PDF_LIGHT },
-    columnStyles: {
-      0: { cellWidth: 12, fontStyle:'bold' },
-      1: { cellWidth: 13 },
-      2: { cellWidth: 18 },
-      3: { cellWidth: 14, halign:'right' },
-      4: { cellWidth: 28, halign:'right' },
-      5: { cellWidth: 18 },
-      6: { cellWidth: 32 },
-      7: { cellWidth: 24 },
-      8: { cellWidth: 18 },
-      9: { cellWidth: 26, halign:'right' },
-      10:{ cellWidth: 22 },
-    },
-    margin: { left:14, right:14 },
-    didDrawPage: (data) => {
-      if (data.pageNumber > 1) pdfHeader(doc, 'REKAPITULASI KAVLING', 'Semua Unit — Phase 1');
-    }
-  });
-
-  pdfFooter(doc);
-  doc.save('VBT_Rekapitulasi_Kavling.pdf');
-  showToast('PDF Rekapitulasi berhasil diunduh!', 'success');
-}
-
-/* ──────────────────────────────────────────
-   2. EXPORT FILTERED
-────────────────────────────────────────── */
-async function exportFiltered() {
-  const selected = Object.keys(activeChips).filter(k => activeChips[k]);
-  if (!selected.length) { showToast('Pilih minimal 1 status.', 'error'); return; }
-
-  setProgress('Memfilter data kavling…');
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
-  const pw = doc.internal.pageSize.getWidth();
-
-  const filterLabel = selected.map(s => statusLabel[s]).join(', ');
-  let y = pdfHeader(doc, 'LAPORAN FILTER STATUS', filterLabel);
-  y += 4;
-
-  const filtered = Object.values(kavlingData).filter(d => selected.includes(d.status))
-    .sort((a,b) => a.id.localeCompare(b.id));
-
-  doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(...PDF_GRAY);
-  doc.text(`${filtered.length} kavling ditemukan dengan status: ${filterLabel}`, 14, y);
-  y += 6;
-
-  setProgress('Membuat tabel…');
-  await new Promise(r => setTimeout(r, 40));
-
-  const rows = filtered.map(d => [
-    d.id, `Blok ${d.blok}`, d.tipe||'—', d.luas+' m²', fmtRp(d.harga),
-    statusBadgeCell(d.status),
-    d.nama||'—', d.nospr||'—', d.metode||'—',
-    d.jumlah ? fmtRp(d.jumlah) : '—',
-    d.tanggal ? fmtDate(d.tanggal) : '—',
-  ]);
-
-  doc.autoTable({
-    startY: y,
-    head: [['Kavling','Blok','Tipe','Luas','Harga','Status','Nama Pembeli','No. SPR','Metode','Jumlah','Tgl. Akad']],
-    body: rows,
-    theme: 'grid',
-    styles: { fontSize: 7.2, cellPadding: 2.2, valign:'middle', overflow:'linebreak' },
-    headStyles: { fillColor: PDF_FOREST, textColor:[255,255,255], fontStyle:'bold', fontSize:7.5 },
-    alternateRowStyles: { fillColor: PDF_LIGHT },
-    columnStyles: {
-      0:{cellWidth:12,fontStyle:'bold'},1:{cellWidth:13},2:{cellWidth:18},
-      3:{cellWidth:14,halign:'right'},4:{cellWidth:28,halign:'right'},5:{cellWidth:18},
-      6:{cellWidth:32},7:{cellWidth:24},8:{cellWidth:18},
-      9:{cellWidth:26,halign:'right'},10:{cellWidth:22},
-    },
-    margin: { left:14, right:14 },
-    didDrawPage: () => { pdfHeader(doc, 'LAPORAN FILTER STATUS', filterLabel); }
-  });
-
-  pdfFooter(doc);
-  const fname = 'VBT_Filter_' + selected.map(s=>s.charAt(0).toUpperCase()+s.slice(1)).join('_') + '.pdf';
-  doc.save(fname);
-  showToast('PDF filter berhasil diunduh!', 'success');
-}
-
-/* ──────────────────────────────────────────
-   3. EXPORT SINGLE KAVLING
-────────────────────────────────────────── */
-async function exportSingle() {
-  const id = document.getElementById('exportKavlingSelect').value;
-  if (!id) { showToast('Pilih nomor kavling terlebih dahulu.', 'error'); return; }
-  const d = kavlingData[id];
-
-  setProgress(`Menyiapkan detail Kavling ${id}…`);
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
-  const pw = doc.internal.pageSize.getWidth();
-
-  let y = pdfHeader(doc, `DETAIL KAVLING ${id}`, `Blok ${d.blok} — ${d.tipe || 'Kavling Tanah'}`);
-  y += 4;
-
-  // Status badge row
-  const sColor = statusColorPDF[d.status];
-  doc.setFillColor(...sColor);
-  doc.roundedRect(14, y, 40, 9, 2, 2, 'F');
-  doc.setFont('helvetica','bold'); doc.setFontSize(8.5); doc.setTextColor(255,255,255);
-  doc.text(statusLabel[d.status], 34, y + 5.8, { align:'center' });
-  y += 14;
-
-  // Info grid
-  const infoLeft = [
-    ['No. Kavling', d.id],
-    ['Blok', `Blok ${d.blok}`],
-    ['Tipe Rumah', d.tipe || '—'],
-    ['Luas Tanah', `${d.luas} m²`],
-    ['Harga', fmtRp(d.harga)],
-  ];
-  const infoRight = [
-    ['Nama Pembeli', d.nama || '—'],
-    ['No. SPR', d.nospr || '—'],
-    ['Metode Bayar', d.metode || '—'],
-    ['Jumlah Bayar', d.jumlah ? fmtRp(d.jumlah) : '—'],
-    ['Tanggal Akad', d.tanggal ? fmtDate(d.tanggal) : '—'],
-  ];
-
-  const colX = [14, 55, pw/2 + 5, pw/2 + 46];
-  const rowH = 8;
-
-  // Section headers
-  doc.setFillColor(...PDF_SAND);
-  doc.rect(14, y, (pw/2 - 17), 6, 'F');
-  doc.rect(pw/2 + 3, y, (pw/2 - 17), 6, 'F');
-  doc.setFont('helvetica','bold'); doc.setFontSize(7); doc.setTextColor(...PDF_FOREST);
-  doc.text('DATA KAVLING', 16, y + 4);
-  doc.text('DATA PEMBELI', pw/2 + 5, y + 4);
-  y += 8;
-
-  infoLeft.forEach((row, i) => {
-    const ry = y + i * rowH;
-    if (i % 2 === 0) {
-      doc.setFillColor(...PDF_LIGHT);
-      doc.rect(14, ry - 0.5, pw/2 - 17, rowH, 'F');
-      doc.rect(pw/2 + 3, ry - 0.5, pw/2 - 17, rowH, 'F');
-    }
-    doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(...PDF_GRAY);
-    doc.text(row[0], colX[0], ry + 4.5);
-    doc.setTextColor(...PDF_FOREST); doc.setFont('helvetica','bold');
-    doc.text(row[1], colX[1], ry + 4.5);
-
-    doc.setFont('helvetica','normal'); doc.setTextColor(...PDF_GRAY);
-    doc.text(infoRight[i][0], colX[2], ry + 4.5);
-    doc.setTextColor(...PDF_FOREST); doc.setFont('helvetica','bold');
-    doc.text(infoRight[i][1], colX[3], ry + 4.5, { maxWidth: pw/2 - 20 });
-  });
-  y += infoLeft.length * rowH + 6;
-
-  // Catatan
-  if (d.catatan) {
-    doc.setFillColor(...PDF_SAND);
-    doc.rect(14, y, pw - 28, 6, 'F');
-    doc.setFont('helvetica','bold'); doc.setFontSize(7); doc.setTextColor(...PDF_FOREST);
-    doc.text('CATATAN', 16, y + 4);
-    y += 8;
-    doc.setFont('helvetica','normal'); doc.setFontSize(8.5); doc.setTextColor(...PDF_FOREST);
-    doc.text(d.catatan, 16, y + 4, { maxWidth: pw - 32 });
-    y += 12;
-  }
-
-  // Dokumen images
-  setProgress('Memuat gambar dokumen…');
-  await new Promise(r => setTimeout(r, 40));
-
-  if (d.imgKtp || d.imgSpr) {
-    // We'll create dedicated pages for documents: KTP = setengah halaman, SPR = full page
-    // Small header marker on main page
-    doc.setFillColor(...PDF_SAND);
-    doc.rect(14, y, pw - 28, 6, 'F');
-    doc.setFont('helvetica','bold'); doc.setFontSize(7); doc.setTextColor(...PDF_FOREST);
-    doc.text('DOKUMEN (Gambar dibuka pada halaman terpisah)', 16, y + 4);
-    y += 10;
-
-    // Place KTP on the same detail page (fit to remaining space), do not create a new page
-    if (d.imgKtp) {
-      setProgress('Menempatkan gambar KTP pada halaman detail…');
-      await new Promise(res => {
-        const img = new Image(); img.onload = () => {
-          const ph = doc.internal.pageSize.getHeight();
-          const margin = 14;
-          const remainingH = ph - y - margin - 30; // reserve some space for signature/footer
-          const targetW = pw - margin * 2;
-          // target height should not exceed ~45% page but must fit remaining space
-          const maxDesiredH = (ph - margin * 2) * 0.45;
-          const targetH = Math.min(maxDesiredH, Math.max(remainingH, 40));
-          const iw = img.width, ih = img.height;
-          const ratio = Math.min(targetW / iw, targetH / ih);
-          const w = iw * ratio; const h = ih * ratio;
-          const x = margin + (targetW - w) / 2;
-          const yimg = y + 2; // place just below current cursor
-          try { doc.addImage(d.imgKtp, 'JPEG', x, yimg, w, h); } catch(e) {}
-          y += h + 10; // advance cursor
-          res();
-        }; img.onerror = () => res(); img.src = d.imgKtp;
-      });
-    }
-
-    // Add SPR as full-page image
-    if (d.imgSpr) {
-      setProgress('Menambahkan halaman SPR (1 halaman penuh)…');
-      await new Promise(res => {
-        const img = new Image(); img.onload = () => {
-          const ph = doc.internal.pageSize.getHeight();
-          const margin = 6; // small margin
-          const targetW = pw - margin * 2;
-          const targetH = ph - margin * 2;
-          const iw = img.width, ih = img.height;
-          const ratio = Math.min(targetW / iw, targetH / ih);
-          const w = iw * ratio; const h = ih * ratio;
-          const x = (pw - w) / 2;
-          const yimg = (ph - h) / 2;
-          doc.addPage();
-          try { doc.addImage(d.imgSpr, 'JPEG', x, yimg, w, h); } catch(e) {}
-          res();
-        }; img.onerror = () => res(); img.src = d.imgSpr;
-      });
-    }
-  }
-
-  // Signature area
-  if (y > doc.internal.pageSize.getHeight() - 50) { doc.addPage(); y = 20; }
-  y += 4;
-  doc.setDrawColor(...PDF_SAND);
-  doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(...PDF_GRAY);
-  const sigDate = new Date().toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
-  doc.text(`Malang, ${sigDate}`, pw - 14 - 60, y + 4, { align: 'left' });
-  y += 10;
-  doc.line(pw - 14 - 60, y + 20, pw - 14, y + 20);
-  doc.text('Marketing', pw - 14 - 30, y + 25, { align: 'center' });
-
-  pdfFooter(doc);
-  doc.save(`VBT_Kavling_${id}.pdf`);
-  showToast(`PDF Kavling ${id} berhasil diunduh!`, 'success');
-}
-
-/* ──────────────────────────────────────────
-   4. EXPORT STATISTIK
-────────────────────────────────────────── */
-async function exportStats() {
-  setProgress('Menghitung statistik…');
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
-  const pw = doc.internal.pageSize.getWidth();
-
-  let y = pdfHeader(doc, 'LAPORAN STATISTIK', 'Ringkasan Penjualan Phase 1');
-  y += 6;
-
-  const all = Object.values(kavlingData);
-  const counts = { available:0, booked:0, sold:0 };
-  all.forEach(d => counts[d.status]++);
-  const total = all.length;
-  const soldVal  = all.filter(d=>d.status==='sold').reduce((s,d)=>s+d.harga,0);
-  const bookedVal= all.filter(d=>d.status==='booked').reduce((s,d)=>s+d.jumlah,0);
-  const soldPct  = Math.round(counts.sold/total*100);
-
-  // Big stat row
-  const cards = [
-    { label:'Total Kavling', val: total+' unit', color: PDF_MOSS },
-    { label:'Terjual', val: counts.sold+' unit ('+soldPct+'%)', color: PDF_RED },
-    { label:'Nilai Terjual', val: fmtRp(soldVal), color: PDF_FOREST },
-    { label:'Tersedia', val: counts.available+' unit', color: PDF_GREEN },
-  ];
-  const cw = (pw - 28 - 9) / 4;
-  cards.forEach((c, i) => {
-    const cx = 14 + i*(cw+3);
-    doc.setFillColor(...c.color);
-    doc.roundedRect(cx, y, cw, 20, 2.5, 2.5, 'F');
-    doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(255,255,255);
-    doc.text(c.val, cx + cw/2, y + 9, { align:'center', maxWidth: cw - 4 });
-    doc.setFont('helvetica','normal'); doc.setFontSize(7); doc.setTextColor(255,255,255);
-    doc.text(c.label, cx + cw/2, y + 15.5, { align:'center' });
-  });
-  y += 26;
-
-  // Section: per-blok breakdown
-  doc.setFillColor(...PDF_SAND);
-  doc.rect(14, y, pw - 28, 6, 'F');
-  doc.setFont('helvetica','bold'); doc.setFontSize(7.5); doc.setTextColor(...PDF_FOREST);
-  doc.text('REKAPITULASI PER BLOK', 16, y + 4);
-  y += 8;
-
-  const bloks = [...new Set(all.map(d=>d.blok))].sort();
-  const blokRows = bloks.map(blok => {
-    const items = all.filter(d => d.blok === blok);
-    const bCounts = { available:0, booked:0, sold:0 };
-    items.forEach(d => bCounts[d.status]++);
-    const bSold = items.filter(d=>d.status==='sold').reduce((s,d)=>s+d.harga,0);
-    return [
-      `Blok ${blok}`, items.length,
-      { content: bCounts.available, styles: { textColor: PDF_GREEN, fontStyle:'bold' } },
-      { content: bCounts.booked,    styles: { textColor: PDF_YELLOW, fontStyle:'bold' } },
-      { content: bCounts.sold,      styles: { textColor: PDF_RED, fontStyle:'bold' } },
-      fmtRp(bSold),
-    ];
-  });
-  blokRows.push([
-    { content: 'TOTAL', styles: { fontStyle:'bold', fillColor: PDF_FOREST, textColor:[255,255,255] } },
-    { content: total, styles: { fontStyle:'bold', fillColor: PDF_FOREST, textColor:[255,255,255] } },
-    { content: counts.available, styles: { fontStyle:'bold', fillColor: PDF_FOREST, textColor:PDF_GREEN } },
-    { content: counts.booked,    styles: { fontStyle:'bold', fillColor: PDF_FOREST, textColor:PDF_YELLOW } },
-    { content: counts.sold,      styles: { fontStyle:'bold', fillColor: PDF_FOREST, textColor:PDF_RED } },
-    { content: fmtRp(soldVal), styles: { fontStyle:'bold', fillColor: PDF_FOREST, textColor:[255,255,255] } },
-  ]);
-
-  doc.autoTable({
-    startY: y,
-    head: [['Blok','Total','Tersedia','Dipesan','Terjual','Nilai Terjual']],
-    body: blokRows,
-    theme: 'grid',
-    styles: { fontSize: 8.5, cellPadding: 3, valign:'middle', halign:'center' },
-    headStyles: { fillColor: PDF_FOREST, textColor:[255,255,255], fontStyle:'bold' },
-    alternateRowStyles: { fillColor: PDF_LIGHT },
-    columnStyles: { 0:{halign:'left', fontStyle:'bold'}, 6:{halign:'right'} },
-    margin: { left:14, right:14 },
-  });
-
-  y = doc.lastAutoTable.finalY + 10;
-
-  // Per-metode breakdown
-  doc.setFillColor(...PDF_SAND);
-  doc.rect(14, y, pw - 28, 6, 'F');
-  doc.setFont('helvetica','bold'); doc.setFontSize(7.5); doc.setTextColor(...PDF_FOREST);
-  doc.text('BREAKDOWN METODE PEMBAYARAN', 16, y + 4);
-  y += 8;
-
-  const metodes = ['Cash','KPR','Cash Tempo'];
-  const metodeRows = metodes.map(m => {
-    const items = all.filter(d => d.metode === m);
-    const val = items.reduce((s,d) => s + (d.jumlah || 0), 0);
-    return [m, items.length + ' kavling', fmtRp(val)];
-  });
-  const noMetode = all.filter(d => !d.metode).length;
-  if (noMetode) metodeRows.push(['—', noMetode + ' kavling', '—']);
-
-  doc.autoTable({
-    startY: y,
-    head: [['Metode Pembayaran','Jumlah Kavling','Total Dana Masuk']],
-    body: metodeRows,
-    theme: 'grid',
-    styles: { fontSize: 8.5, cellPadding: 3, valign:'middle' },
-    headStyles: { fillColor: PDF_MOSS, textColor:[255,255,255], fontStyle:'bold' },
-    alternateRowStyles: { fillColor: PDF_LIGHT },
-    columnStyles: { 2: { halign:'right' } },
-    margin: { left:14, right:14 },
-    tableWidth: (pw - 28) / 2,
-  });
-
-  pdfFooter(doc);
-  doc.save('VBT_Statistik_Penjualan.pdf');
-  showToast('PDF Statistik berhasil diunduh!', 'success');
-}
+// ── INIT ──
+document.getElementById('detailPanel').classList.add('open');
+updateBreadcrumb(null);
 </script>
 </body>
 </html>
